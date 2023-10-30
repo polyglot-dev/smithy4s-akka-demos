@@ -1,0 +1,18 @@
+meta {
+  name: update person
+  type: http
+  seq: 2
+}
+
+patch {
+  url: http://0.0.0.0:9006/advertisers/1/basic-information
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "victor",
+    "town": "madrid"
+  }
+}

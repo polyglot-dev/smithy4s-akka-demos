@@ -1,0 +1,34 @@
+services:
+  postgres-db:
+    profiles: ["linux"]
+    image: postgres:15.4-alpine3.18
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/.postgres:/var/lib/postgresql/data
+      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_PASSWORD: pass
+
+  postgres-db-mac:
+    profiles: ["macos"]
+    image: postgres:15.4
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/.postgres:/var/lib/postgresql/data
+      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_PASSWORD: pass
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      - DEBUG=${DEBUG-}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "./data/.localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

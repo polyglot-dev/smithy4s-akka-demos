@@ -1,0 +1,543 @@
+openapi: 3.0.0
+info:
+  title: API REST management
+  description: This is the REST API 
+  version: 1.0.0
+tags:
+  - name: "advertisers"
+    description: "Advertisers"
+paths:
+  /advertisers/{id}/basic-information:
+    patch:
+      tags:
+        - "advertisers"
+      summary: "Update the advertiser basic information"
+      description: "This API endpoint allows updating the advertiser's basic information."
+      operationId: "updateAdvertiserBasicInformation"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonInfo"
+      parameters:
+        - in: path
+          name: "id"
+          description: "ID of the advertiser to return"
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The advertiser basic information was properly updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonInfo"
+        '400':
+          description: Bad request response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        '401':
+          description: Unauthorized response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        '403':
+          description: Forbidden response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        '404':
+          description: Not found response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        '409':
+          description: Conflict response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        '500':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+  
+  /advertisers:
+    post:
+      tags:
+        - "advertisers"
+      summary: "Create a new advertiser"
+      description: "This endpoint will "
+      operationId: "createAdvertiser"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Person"
+      responses:
+        '201':
+          description: The advertiser was properly stored.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdvertiserBodyResponse"
+        '409':
+          description: Conflict response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        '400':
+          description: Bad request response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        '500':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+  /advertisers/{id}/category:
+    patch:
+      tags:
+        - "advertisers"
+      summary: "Update an "
+      description: "This API "
+      operationId: "updateAdvertiserCategory"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Category"
+      parameters:
+        - in: path
+          name: "id"
+          description: "ID of advertiser to return."
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The advertiser status was properly updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Advertiser"
+        '400':
+          description: Bad request response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        '404':
+          description: Not found response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        '500':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+  /advertisers/{id}:
+    get:
+      tags:
+        - "advertisers"
+      summary: "Get an ad by ID"
+      description: "This API"
+      operationId: "getAdvertiserById"
+      parameters:
+        - in: path
+          name: "id"
+          description: "ID of advertiser to return."
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Advertiser"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        '400':
+          description: Bad request response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        '500':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+        '404':
+          description: Not found response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+components:
+  schemas:
+    AdvertiserCreateRequest:
+      description: Representation of advertiser properties.
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          description: The advertiser name.
+          type: string
+          example: 'Nike'
+        person:
+          description: The person
+          $ref: "#/components/schemas/Person"
+    AdvertiserBodyResponse:
+      description: Representation of advertiser ID after created it.
+      type: object
+      properties:
+        id:
+          description: The advertiser ID.
+          type: string
+          example: '1234'
+    Advertiser:
+      description: Representation of advertiser properties.
+      type: object
+      properties:
+        id:
+          description: The advertiser ID.
+          type: string
+          example: '1234'
+        name:
+          description: The advertiser name.
+          type: string
+          example: 'Nike'
+        description:
+          description: The description of the advertiser.
+          type: string
+          example: 'A sporting retailer based in the US.'
+        category:
+          $ref: "#/components/schemas/Category"
+        invoicingBankAccount:
+          $ref: "#/components/schemas/Account"
+        logo:
+          $ref: "#/components/schemas/Logo"
+        locations:
+          $ref: "#/components/schemas/Locations"
+        advertiserContact:
+          $ref: "#/components/schemas/ContactInfo"
+        status:
+          $ref: "#/components/schemas/Status"
+    Account:
+      description: The invoicing bank account list.
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            description: The bank account id.
+            type: string
+            example: '1234'
+          name:
+            description: The bank account titular name.
+            type: string
+            example: 'William Cannon'
+          description:
+            description: The bank account description.
+            type: string
+            example: 'Location in south Austin'
+          number:
+            description: The bank account account number.
+            type: string
+            pattern: '^(\d{3,12})$'
+            example: '13719713158835300'
+          bankName:
+            description: The bank name.
+            type: string
+            example: 'William Cannon'
+          SWIFT:
+            description: The IBAN.
+            type: string
+            pattern: '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$'
+            example: 'USBKUS44XXX'
+    # Address:
+    #   description: The location info.
+    #   type: object
+    #   properties:
+    #     storeAddress:
+    #       description: The store address name.
+    #       type: string
+    #       example: 'Lyte St'
+    #     storeNumber:
+    #       description: The numeber of street.
+    #       type: string
+    #       example: '1647'
+    #     country:
+    #       description: The country name.
+    #       type: string
+    #       example: 'United States'
+    #     state:
+    #       description: The state name.
+    #       type: string
+    #       example: 'Texas'
+    #     city:
+    #       description: The city name.
+    #       type: string
+    #       example: 'Dallas'
+    #     zip:
+    #       description: The postcode.
+    #       type: string
+    #       example: '75202'
+    #     mid:
+    #       description: The MID.
+    #       type: string
+    #       example: '75202'
+    AdvertiserLocationCreateRequest:
+      description: The locations list.
+      type: object
+      properties:
+        name:
+          description: The location name.
+          type: string
+          example: 'William Cannon'
+        description:
+          description: The location description.
+          type: string
+          example: 'Location in south Austin'
+    AdvertiserLocationBodyResponse:
+      description: The locations list.
+      type: object
+      properties:
+        id:
+          description: The location id.
+          type: string
+          example: '1234'
+    Locations:
+      description: The locations list.
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            description: The location id.
+            type: string
+            example: '1234'
+          name:
+            description: The location name.
+            type: string
+            example: 'William Cannon'
+          description:
+            description: The location description.
+            type: string
+            example: 'Location in south Austin'
+          address:
+            $ref: "#/components/schemas/Address"
+          geographicCoordinates:
+            $ref: "#/components/schemas/GeographicCoordinates"
+          locationContact:
+            $ref: "#/components/schemas/ContactInfo"
+    Category:
+      description: The category
+      type: object
+      properties:
+        value:
+          description: The list of the categories.
+          type: string
+          enum:
+            - uncategorized
+            - restaurant
+            - sprot equipment
+            - hotels
+            - airlines
+            - entertainment
+            - cinema
+            - coffee
+          example: uncategorized
+    ContactInfo:
+      description: The contact info of the advertiser.
+      required:
+        - name
+        - email
+        - phone
+        - title
+      type: object
+      properties:
+        name:
+          description: The contact name of the advertiser.
+          type: string
+          example: 'John Doe'
+        title:
+          description: The contact title of the advertiser.
+          type: string
+          example: 'Senior Director of Sales'
+        email:
+          description: The contact email of the advertiser.
+          type: string
+          example: 'john.doe@campaign.com'
+        phone:
+          description: The contact phone of the advertiser.
+          type: string
+          example: '123456789'
+    GeographicCoordinates:
+      description: The geographic coordinates of an advertiser's location.
+      type: object
+      properties:
+        latitude:
+          description: The latitude of an advertiser's location.
+          type: string
+          example: '30.2364289'
+        longitude:
+          description: The longitude of an advertiser's location.
+          type: string
+          example: '-97.747366'
+    Status:
+      description: It give the advertiser status, if is pending, active, rejected.... Defaults always set to created when creating.
+      type: string
+      enum:
+        - pending
+        - active
+        - rejected
+        - block requested
+        - blocked
+        - unblock request
+        - created
+      example: pending
+    PaginatedResult:
+      type: object
+      properties:
+        itemsCount:
+          description: "Number of items in the current page."
+          type: integer
+        itemsFrom:
+          description: "Index of the first item in the current page."
+          type: integer
+        itemsTo:
+          description: "Index of the last item in the current page."
+          type: integer
+        itemsTotal:
+          description: "Total number of items in the collection."
+          type: integer
+        next:
+          description: Link with the path, non-mandatory if there is no more pages.
+          type: string
+        previous:
+          description: Link with the path, non-mandatory if there is no previous pages.
+          type: string
+    PersonInfo:
+      description: Representation of Person
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+        town:
+          description: The town
+          type: string
+    Person:
+      description: Representation of Person
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+        town:
+          description: The town
+          type: string
+        address:
+          $ref: "#/components/schemas/Address"
+    Address:
+      description: Representation of Address
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+        n:
+          description: The number
+          type: integer
+    StringResponse:
+      description: general response
+      type: object
+      properties:
+        data:
+          description: payload
+          type: string
+    Logo:
+      description: Logo of advertiser.
+      type: object
+      properties:
+        id:
+          description: Logo's ID.
+          type: string
+          example: '1234'
+        file:
+          type: string
+          format: binary
+          nullable: true
+    BadRequest:
+      description: Bad request.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Forbidden due to invalid session or missing headers.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    Conflict:
+      description: Conflict error.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    InternalError:
+      description: Unexpected error.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Entity not found.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Unauthorized due to invalid headers.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    HTTPConflict:
+      description: Resource already exists.
+      type: object
+      properties:
+        request:
+          $ref: "#/components/schemas/Error"
+    Error:
+      type: object
+      properties:
+        code:
+          description: Functional error code (machine friendly).
+          type: string
+        title:
+          description: Functional error title (machine friendly).
+          type: string
+        description:
+          description: Error description (human friendly).
+          type: string
