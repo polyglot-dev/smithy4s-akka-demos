@@ -41,7 +41,7 @@ class AdvertiserRepositoryGetImplTestSuite extends CatsEffectSuite with CommonRe
   test("Update a person 1") {
 
     repo.updatePerson(PersonInfo(Some("b"), Some("d")), 1).map(
-      it => assertEquals(it, Right(Some(PersonInfo(Some("b"), Some("d")))))
+      it => assertEquals(it, Right(Some(Person(Some("b"), Some("d")))))
     )
 
   }
@@ -49,7 +49,7 @@ class AdvertiserRepositoryGetImplTestSuite extends CatsEffectSuite with CommonRe
   test("Update a person 1, b") {
 
     repo.updatePerson(PersonInfo(Some("b"), None), 1).map(
-      it => assertEquals(it, Right(Some(PersonInfo(Some("b"), Some("k")))))
+      it => assertEquals(it, Right(Some(Person(Some("b"), Some("k")))))
     )
 
   }

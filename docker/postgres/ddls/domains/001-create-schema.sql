@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS person(
       id BIGSERIAL PRIMARY KEY,
       name VARCHAR,
       town VARCHAR,
-      address json
+      address_at json
 );
 
 create unique index person_name_uindex

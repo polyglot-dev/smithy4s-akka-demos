@@ -31,7 +31,7 @@ class AdvertiserServiceImpl(
     }
   }
 
-  def updatePerson(body: PersonInfo, id: Long): IO[PersonInfo] = {
+  def updatePerson(body: PersonInfo, id: Long): IO[Person] = {
     logger.foreach(_.info(s"Service, updating person: '$body'"))
 
     body match
@@ -42,7 +42,7 @@ class AdvertiserServiceImpl(
         yield {
           repositoryResult match
             case Right(None)    => throw NotFoundError(404, f"Data with id: ${id} missing")
-            case Right(Some(p)) => p.to[PersonInfo]
+            case Right(Some(p)) => p.to[Person]
             case Left(ex)       =>
               if ex.getMessage contains "duplicate key value" then
                   throw ConflictError(409, s"Advertiser with name: ${body.name.get} already exists")

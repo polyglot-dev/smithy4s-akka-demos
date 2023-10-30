@@ -52,16 +52,19 @@ def sysPropOrDefault
   (propName: String, default: String)
   : String = Option(System.getProperty(propName)).getOrElse(default)
 
-lazy val startupProject = sysPropOrDefault("active-app", "root") match{
-  case "crud" => "http_rest_crud"
-  case "rest" => "cats_Http"
-  case "grpc" => "akka_gRPC"
-  case _ => "root"
-}
-  
+lazy val startupProject =
+  sysPropOrDefault("active-app", "root") match {
+    case "crud" => "http_rest_crud"
+    case "rest" => "cats_Http"
+    case "grpc" => "akka_gRPC"
+    case _      => "root"
+  }
+
 // This prepends the String you would type into the shell
-lazy val startupTransition: State => State = { s: State =>
-  s"project $startupProject" :: s
+lazy val startupTransition: State => State = {
+  s:
+      State =>
+          s"project $startupProject" :: s
 }
 
 lazy val dummy = project
@@ -79,7 +82,7 @@ lazy val root = project
       val old = (Global / onLoad).value
       // compose the new transition on top of the existing one
       // in case your plugins are using this hook.
-      startupTransition compose old
+      startupTransition.compose(old)
     },
     name := "root",
     publish / skip := true
@@ -144,12 +147,14 @@ generateSmithyFromOpenApi := {
     for (f <- dirContents.split("\n").toList) {
       if ((shell :+ f"""bin/tools/postprocess.scala -f "${f}" """).! == 0) {
         s.log.success(s"Smithy postprocess successful for ${f}")
-      } else throw new IllegalStateException(s"Smithy postprocess failed for ${f}")
+      } else
+        throw new IllegalStateException(s"Smithy postprocess failed for ${f}")
     }
 
     (shell :+ f"""cp -R bin/tools/support/* ${smithyFilesPath.value} """).!
 
-  } else throw new IllegalStateException("Smithy generation failed!")
+  } else
+    throw new IllegalStateException("Smithy generation failed!")
 }
 
 PB.protocVersion := "3.23.1"
@@ -230,7 +235,7 @@ lazy val http_rest_crud = project
   .settings(autoImportSettings)
   .settings(
     Compile / run / fork := true,
-    Test / parallelExecution := false, 
+    Test / parallelExecution := false,
     name := "http-service-crud",
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
@@ -256,11 +261,9 @@ lazy val http_rest_crud = project
       Libraries.munitCatsEffect,
       Libraries.circeGeneric,
       Libraries.postgresCirce,
-
       "software.amazon.awssdk"     % "s3"                  % awsVersion,
       "software.amazon.awssdk"     % "s3-transfer-manager" % awsVersion,
       "software.amazon.awssdk.crt" % "aws-crt"             % "0.27.3",
-
     ),
   )
 

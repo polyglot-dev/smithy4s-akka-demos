@@ -33,7 +33,7 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
 
     val stmt =
       sql"""
-            SELECT name, town, address
+            SELECT name, town, address_at
             FROM person
             WHERE id = ${id}
             """
@@ -48,7 +48,7 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
   def savePerson(p: Person): IO[Either[Throwable, Long]] = {
     val stmt =
       sql"""
-          insert into person (name, town, address) 
+          insert into person (name, town, address_at) 
           values (${p.name}, ${p.town}, ${p.address})"""
 
     stmt
@@ -60,7 +60,7 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
 
   import Fragments.*
 
-  def updatePerson(p: PersonInfo, id: Long): IO[Either[Throwable, Option[PersonInfo]]] = {
+  def updatePerson(p: PersonInfo, id: Long): IO[Either[Throwable, Option[Person]]] = {
     val f1: Option[Fragment] = p.name.map(
       n => fr"name = $n"
     )
@@ -72,7 +72,7 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
 
     stmt
       .update
-      .withGeneratedKeys[PersonInfo]("name", "town")
+      .withGeneratedKeys[Person]("name", "town", "address_at")
       .take(1)
       .compile
       .toList
