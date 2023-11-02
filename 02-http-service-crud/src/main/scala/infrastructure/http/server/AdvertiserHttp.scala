@@ -46,6 +46,8 @@ trait AdvertiserHttp(
         // val result: GetAdvertiserById200 = GetAdvertiserById200(Person(Some("jo"), Some("Madrid")))
         // return IO { result }
 
+        // throw new RuntimeException("Not implemented")
+
         val res = service.getPersonById(id).map(
           p => GetAdvertiserById200(p)
         )

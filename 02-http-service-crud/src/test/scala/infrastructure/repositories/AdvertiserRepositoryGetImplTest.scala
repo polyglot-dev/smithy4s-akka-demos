@@ -6,6 +6,7 @@ import common.*
 import domain.data.*
 
 import infrastructure.internal.common.*
+import infrastructure.http.*
 
 class AdvertiserRepositoryGetImplTestSuite extends CatsEffectSuite with CommonRepositoryContext {
 
@@ -68,11 +69,11 @@ class AdvertiserRepositoryGetImplTestSuite extends CatsEffectSuite with CommonRe
     )
   }
 
-  intercept[NotFoundError] {
+  intercept[NotFound] {
     service.getPersonById("4").unsafeRunSync()
   }
 
-  interceptMessage[NotFoundError]("Data with id: 33 missing") {
+  interceptMessage[NotFound]("Data with id: 33 missing") {
     service.getPersonById("33").unsafeRunSync()
   }
 

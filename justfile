@@ -95,3 +95,6 @@ akka:
 
 rest:
   sbt -Dactive-app=rest
+
+basic:
+  sbt -Dactive-app=basic

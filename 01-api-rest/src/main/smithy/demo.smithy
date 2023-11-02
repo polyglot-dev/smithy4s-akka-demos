@@ -6,6 +6,15 @@ use alloy#simpleRestJson
 
 use smithytranslate#contentType
 
+@simpleRestJson
+service HelloWorldService {
+  version: "1.0.0",
+  operations: [
+    Hello
+    UpdateCategory
+  ]
+}
+
 enum Category {
     uncategorized
     restaurant
@@ -32,10 +41,8 @@ operation UpdateCategory {
     output: Response
     errors: [
         BadRequestError
-        UnauthorizedError
-       ForbiddenError
         NotFoundError
-       ServiceUnavailableError
+        ServiceUnavailableError
     ]
 }
 
@@ -43,15 +50,6 @@ structure UpdateCategoryInput {
     @httpPayload
     @contentType("application/json")
     body: Category
-}
-
-@simpleRestJson
-service HelloWorldService {
-  version: "1.0.0",
-  operations: [
-    Hello
-    UpdateCategory
-  ]
 }
 
 @http(method: "POST", uri: "/person/{name}", code: 200)

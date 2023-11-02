@@ -107,6 +107,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+        '503':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /advertisers/{id}/category:
     patch:
       tags:
@@ -178,6 +184,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BadRequest"
+        '503':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
         '500':
           description: Internal error response.
           content:
@@ -448,6 +460,9 @@ components:
           type: string
     Person:
       description: Representation of Person
+      required:
+        - name
+        - town
       type: object
       properties:
         name:

@@ -25,9 +25,12 @@ import logstage.IzLogger
 
 import types.*
 
+import io.github.arainko.ducktape.*
+
 // import software.amazon.awssdk.crt.Log
 
-import infrastructure.internal.common.*
+import infrastructure.internal.common as smError
+import smithy4s.http.PayloadError
 
 class ServerRoutes(
                 service: AdvertiserService[IO],
@@ -35,9 +38,30 @@ class ServerRoutes(
 
     private val mainRoutes: Resource[IO, HttpRoutes[IO]] =
       SimpleRestJsonBuilder.routes(HttpServerImpl(service, logger))
-        // .mapErrors{
-        //   case e: Throwable => ServiceUnavailableError(503, e.getMessage())
-        // }
+        .mapErrors {
+          case e: PayloadError
+              // Throwable
+              =>
+            //  e.
+            // val cls = e.getClass().getCanonicalName()
+            // logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
+            ErrorsBuilder.badRequestError(e.getMessage())
+
+          case e: ServiceUnavailable =>
+            // e.printStackTrace()
+            e.into[smError.ServiceUnavailableError]
+              .transform(Field.renamed(_.description, _.message))
+
+          case e: Conflict   =>
+            e.into[smError.ConflictError]
+              .transform(Field.renamed(_.description, _.message))
+          case e: BadRequest =>
+            e.into[smError.BadRequestError]
+              .transform(Field.renamed(_.description, _.message))
+          case e: NotFound   =>
+            e.into[smError.NotFoundError]
+              .transform(Field.renamed(_.description, _.message))
+        }
         .resource
 
     private val healthCheck: HttpRoutes[IO] = HttpRoutes.of[IO]:

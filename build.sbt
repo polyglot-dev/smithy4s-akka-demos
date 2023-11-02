@@ -57,6 +57,7 @@ lazy val startupProject =
     case "crud" => "http_rest_crud"
     case "rest" => "cats_Http"
     case "grpc" => "akka_gRPC"
+    case "basic" => "basic_rest"
     case _      => "root"
   }
 
@@ -103,6 +104,12 @@ lazy val root = project
   .dependsOn(
     if (sysPropOrDefault("active-app", "crud") == "crud")
       http_rest_crud
+    else
+      dummy
+  )
+  .dependsOn(
+    if (sysPropOrDefault("active-app", "basic") == "basic")
+      basic_rest
     else
       dummy
   )
@@ -175,6 +182,20 @@ lazy val rest_crud = project
     ),
   )
 
+lazy val `smithy4s-defs-basic` = project
+  .in(file("01-api-rest-basic"))
+  .enablePlugins(Smithy4sCodegenPlugin)
+  .settings(commonSettings)
+  .settings(
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    name := "api-rest-basic",
+    libraryDependencies ++= Seq(
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"        % smithy4sVersion.value,
+      "com.disneystreaming.smithy"    % "smithytranslate-traits" % "0.3.13",
+    ),
+  )
 lazy val `smithy4s-defs` = project
   .in(file("01-api-rest"))
   .enablePlugins(Smithy4sCodegenPlugin)
@@ -224,6 +245,42 @@ lazy val api_grpc_fs2 = project
       Libraries.grpc,
       Libraries.grpcNettyShaded,
       Libraries.scalapbCommonProtos,
+    ),
+  )
+
+lazy val basic_rest = project
+  .in(file("02-http-service-basic"))
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(`smithy4s-defs-basic`)
+  .settings(commonSettings)
+  .settings(autoImportSettings)
+  .settings(
+    Compile / run / fork := true,
+    Test / parallelExecution := false,
+    name := "http-service-basic",
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    Universal / packageName := name.value,
+    Compile / mainClass := Some("main.App"),
+    Compile / discoveredMainClasses := Seq(),
+    libraryDependencies ++= Seq(
+      Libraries.doobieCore,
+      Libraries.doobiePostgres,
+      Libraries.doobieHikari,
+      Libraries.distageCore,
+      Libraries.distageConfig,
+      Libraries.izumiLogstage,
+      Libraries.izumiLogstageAdapterSlf4j,
+      Libraries.izumiLogstageCirce,
+      Libraries.izumiDistageExtension,
+      Libraries.izumiLogstageSinkSlf4j,
+      Libraries.cats,
+      Libraries.catsEffect,
+      Libraries.ducktape,
+      Libraries.http4s,
+      Libraries.munitCatsEffect,
+      Libraries.circeGeneric,
     ),
   )
 
