@@ -10,20 +10,20 @@ object Dependencies {
     val semanticDB           = "4.5.4"
     val logback              = "1.4.5"
     val postgress            = "42.2.24"
-    val akka                 = "2.8.4"
-    val akkaHttp             = "10.5.2"
+    val akka                 = "2.9.0"
+    val akkaHttp             = "10.6.0"
     val cassandra            = "1.1.1"
-    val akkaProjection       = "1.4.2"
+    val akkaProjection       = "1.5.0"
     val hikaryCP             = "4.0.3"
-    val akkaPersistenceR2dbc = "1.1.0"
+    val akkaPersistenceR2dbc = "1.2.0"
     val doobie               = "1.0.0-RC4"
     val grpc                 = "1.56.0"
     val ducktape             = "0.1.10"
     val scalapbCommonProtos  = "2.9.6-0"
-    val alpakka              = "6.0.1"
-    val kafka                = "4.0.2"
+    val alpakka              = "7.0.0"
+    val kafka                = "5.0.0"
     val izumi                = "1.1.0-M26"
-    val akkaManagement         = "1.4.1"
+    val akkaManagement       = "1.5.0"
     val http4s               = "0.23.18"
     val munitCatsEffect      = "2.0.0-M3"
     val circe                = "0.14.5"
@@ -87,6 +87,121 @@ object Dependencies {
     val circeGeneric               = "io.circe"           %% "circe-generic"                  % V.circe
     val postgresCirce              = "org.tpolecat"       %% "doobie-postgres-circe"          % V.doobie
 
+  }
+  
+  object Tracing{
+    val httpServiceDependencies = Seq(
+      Libraries.doobieCore,
+      Libraries.doobiePostgres,
+      Libraries.doobieHikari,
+      Libraries.distageCore,
+      Libraries.distageConfig,
+      Libraries.izumiLogstage,
+      Libraries.izumiLogstageAdapterSlf4j,
+      Libraries.izumiLogstageCirce,
+      Libraries.izumiDistageExtension,
+      Libraries.izumiLogstageSinkSlf4j,
+      Libraries.cats,
+      Libraries.catsEffect,
+      Libraries.ducktape,
+      Libraries.http4s,
+      "io.opentelemetry"                 % "opentelemetry-api"           % "1.31.0",
+      "io.opentelemetry"                 % "opentelemetry-sdk"           % "1.31.0",
+      "io.opentelemetry"                 % "opentelemetry-exporter-otlp" % "1.31.0",
+      "io.opentelemetry"                 % "opentelemetry-semconv"       % "1.30.1-alpha",
+      "io.opentelemetry.instrumentation" % "opentelemetry-grpc-1.6"      % "1.31.0-alpha", // % "runtime"
+    )
+    
+    val grpcAkkaDependencies = Seq(
+        Libraries.akkaCluster,
+        Libraries.akkaClusterSharding,
+        Libraries.akkaDiscovery,
+        Libraries.akkaSlf4j,
+        Libraries.akkaPersistence,
+        Libraries.akkaPersistenceCassandra,
+        Libraries.akkaSerialization,
+        Libraries.akkaProjectionCore,
+        Libraries.akkaProjectionEventsourced,
+        Libraries.akkaHttp,
+        Libraries.postgresql,
+        Libraries.logback,
+        Libraries.akkaProjectionR2dbc,
+        Libraries.akkaPersistenceR2dbc,
+        Libraries.scalapbCommonProtos,
+        Libraries.akkaHttpSprayJson,
+        Libraries.akkaStream,
+        Libraries.kafka,
+        Libraries.distageCore,
+        Libraries.distageConfig,
+        Libraries.akkaMangmentCltrBootstrap,
+        Libraries.akkaMangementClusterHttp,
+        Libraries.akkaDiscoveryKubernetes,
+      )
+    
+    val grpcFs2Dependencies = Seq(
+      Libraries.grpc,
+      Libraries.grpcNettyShaded,
+      Libraries.scalapbCommonProtos,
+    )
+      
+      
+  }
+  
+  object Cruds{
+    
+    lazy val awsVersion = "2.21.0"
+
+    val httpServiceDependencies = Seq(
+      Libraries.doobieCore,
+      Libraries.doobiePostgres,
+      Libraries.doobieHikari,
+      Libraries.distageCore,
+      Libraries.distageConfig,
+      Libraries.izumiLogstage,
+      Libraries.izumiLogstageAdapterSlf4j,
+      Libraries.izumiLogstageCirce,
+      Libraries.izumiDistageExtension,
+      Libraries.izumiLogstageSinkSlf4j,
+      Libraries.cats,
+      Libraries.catsEffect,
+      Libraries.ducktape,
+      Libraries.http4s,
+      Libraries.munitCatsEffect,
+      Libraries.circeGeneric,
+      Libraries.postgresCirce,
+      "software.amazon.awssdk"     % "s3"                  % awsVersion,
+      "software.amazon.awssdk"     % "s3-transfer-manager" % awsVersion,
+      "software.amazon.awssdk.crt" % "aws-crt"             % "0.27.3",
+    )
+      
+  }
+
+  object SmithyLibs{
+    val interfaceLibsDependencies = Seq(
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"        % "0.18.3",
+      "com.disneystreaming.smithy"    % "smithytranslate-traits" % "0.3.14",
+    )
+  }
+  
+  object Basic{
+    val httpServiceDependencies = Seq(
+      Libraries.doobieCore,
+      Libraries.doobiePostgres,
+      Libraries.doobieHikari,
+      Libraries.distageCore,
+      Libraries.distageConfig,
+      Libraries.izumiLogstage,
+      Libraries.izumiLogstageAdapterSlf4j,
+      Libraries.izumiLogstageCirce,
+      Libraries.izumiDistageExtension,
+      Libraries.izumiLogstageSinkSlf4j,
+      Libraries.cats,
+      Libraries.catsEffect,
+      Libraries.ducktape,
+      Libraries.http4s,
+      Libraries.munitCatsEffect,
+      Libraries.circeGeneric,
+    )
   }
 
 // format: on

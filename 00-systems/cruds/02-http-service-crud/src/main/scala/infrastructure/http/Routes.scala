@@ -32,7 +32,7 @@ import io.github.arainko.ducktape.*
 // import software.amazon.awssdk.crt.Log
 
 import infrastructure.internal.common as smError
-import smithy4s.http.PayloadError
+import smithy4s.http.HttpPayloadError
 
 object Converter:
 
@@ -53,6 +53,9 @@ class ServerRoutes(
                 logger: Option[IzLogger]):
 
     def translateMessage(message: String): String ={
+      
+      logger.foreach(_.error(s"MESSAGE: >>>> $message"))
+
       val i = message.indexOf(", offset:")
       if (i == -1) message else message.substring(0, i)
     }
@@ -60,7 +63,7 @@ class ServerRoutes(
     private val mainRoutes: Resource[IO, HttpRoutes[IO]] =
       SimpleRestJsonBuilder.routes(HttpServerImpl(service, logger).transform(Converter.toIO))
         .mapErrors {
-          case e@PayloadError(_, expected, message) =>
+          case e@HttpPayloadError(_, expected, message) =>
               // Throwable
             // val cls = e.getClass().getCanonicalName()
             // logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
@@ -81,6 +84,14 @@ class ServerRoutes(
               .transform(Field.renamed(_.description, _.message))
           case e: NotFound   =>
             e.into[smError.NotFoundError]
+              .transform(Field.renamed(_.description, _.message))
+
+          case e: Throwable =>
+              // Throwable
+            val cls = e.getClass().getCanonicalName()
+            logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
+            ErrorsBuilder.serviceUnavailableError(e.getMessage())
+            .into[smError.InternalServerError]
               .transform(Field.renamed(_.description, _.message))
         }
         .resource

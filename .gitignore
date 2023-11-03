@@ -41,4 +41,4 @@ docker/.profile
 
 notes.txt
 
-01-api-rest-crud/src/main/smithy/
+00-systems/cruds/01-api-rest-crud/src/main/smithy/

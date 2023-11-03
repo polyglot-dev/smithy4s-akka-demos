@@ -88,13 +88,13 @@ clean-docker-compose-data:
   chmod -R 777 docker/data
 
 crud:
-  sbt -Dactive-app=crud
+  sbt -Dactive-app=crud-http
 
-akka:
-  sbt -Dactive-app=grpc
+tracing-http:
+  sbt -Dactive-app=tracing-http
 
-rest:
-  sbt -Dactive-app=rest
+tracing-grpc:
+  sbt -Dactive-app=tracing-grpc
 
 basic:
   sbt -Dactive-app=basic
