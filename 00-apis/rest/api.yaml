@@ -7,6 +7,62 @@ tags:
   - name: "advertisers"
     description: "Advertisers"
 paths:
+  /status:
+    post:
+      tags:
+        - "advertisers"
+      summary: ""
+      description: ""
+      operationId: "setStatus"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Status"
+      responses:
+        '200':
+          description: The advertiser basic information was properly updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        '400':
+          description: Bad request response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequest"
+        '401':
+          description: Unauthorized response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        '403':
+          description: Forbidden response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Forbidden"
+        '404':
+          description: Not found response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFound"
+        '409':
+          description: Conflict response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conflict"
+        '500':
+          description: Internal error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+                  
   /advertisers/{id}/basic-information:
     patch:
       tags:

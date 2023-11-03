@@ -7,9 +7,11 @@ import scala.language.implicitConversions
 // import TypesConversion.given
 import _root_.infrastructure.internal.*
 import types.*
-import server.common.CommonHTTP
 
 class HttpServerImpl(
-                    service: AdvertiserService[IO],
+                    service: AdvertiserService[Result],
                     logger: Option[IzLogger])
-    extends ApiService[IO], CommonHTTP(), server.AdvertiserHttp(service, logger) {}
+    extends ApiService[Result], server.AdvertiserHttpController(service, logger) {
+
+
+}

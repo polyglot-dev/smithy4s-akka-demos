@@ -1,0 +1,22 @@
+meta {
+  name: Set status
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://0.0.0.0:9006/advertisers
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "",
+    "town": "Madrid",
+    "address": {
+      "name": "calle C",
+      "n": 3
+    }
+  }
+}

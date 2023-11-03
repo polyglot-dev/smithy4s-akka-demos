@@ -20,6 +20,8 @@ import logstage.{ ConsoleSink, IzLogger, Trace }
 import izumi.logstage.api.routing.StaticLogRouter
 import infrastructure.resources.{ HttpServerResource, PostgresResource }
 
+import infrastructure.http.Result
+
 object DI:
 
     val configModule =
@@ -55,7 +57,7 @@ object DI:
               (res: PostgresResource, logger: IzLogger) =>
                   res.resource.map(AdvertiserRepositoryImpl(_, Some(logger)))
 
-          make[AdvertiserService[IO]].from:
+          make[AdvertiserService[Result]].from:
               (
                 repo: AdvertiserRepository[IO],
                 logger: IzLogger) =>
@@ -63,7 +65,7 @@ object DI:
 
           make[HttpServerResource].from:
               (
-                service: AdvertiserService[IO],
+                service: AdvertiserService[Result],
                 config: HttpServerConfig,
                 logger: IzLogger) =>
                   given HttpServerConfig = config

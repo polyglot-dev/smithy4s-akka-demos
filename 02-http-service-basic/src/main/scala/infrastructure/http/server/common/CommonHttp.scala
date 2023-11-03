@@ -9,6 +9,12 @@ import logstage.IzLogger
 
 type SmithyModelErrors = NotFoundError | BadRequestError | ServiceUnavailableError
 
+// not used
+def errorHandler(ex: java.lang.Throwable) = {
+    IO.raiseError(NotFoundError("", "", ex.getMessage()))
+}
+
+// not used
 trait CommonHTTP(logger: Option[IzLogger]):
 
     def errorHandler

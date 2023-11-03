@@ -21,6 +21,7 @@ operation Hello {
   errors: [
     BadRequestError
     NotFoundError
+    ServiceUnavailableError
   ]
 }
 

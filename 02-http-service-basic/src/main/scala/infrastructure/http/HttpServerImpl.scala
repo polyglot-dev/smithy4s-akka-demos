@@ -18,38 +18,52 @@ type SmithyModelErrors2 = NotFoundError | BadRequestError
 import smithy4s.Transformation
 import smithy4s.kinds.PolyFunction
 
-type Result[A] = Either[SmithyModelErrors, IO[A]]
-type Result2[A] = Either[SmithyModelErrors2, IO[A]]
+import cats.data.EitherT
 
-trait PartHello(
-                       logger: Option[IzLogger],
-                       ):
-        def hello(name: String, town: Option[String]): Result2[Greeting]= 
-          logger.foreach(_.info(s"Hello $name from $town!"))
-        
-          Left(NotFoundError("404", "Not Found", "Not Found"))
-          // Right(IO.pure{Greeting(s"Hello $name from $town!")})
+type Result[A] = EitherT[IO, SmithyModelErrors, A]
 
+type ResultI[A] = Either[SmithyModelErrors, IO[A]]
+
+type Result2[A] = EitherT[IO, SmithyModelErrors2, IO[A]]
+
+// class HttpServerImpl3(
+//                        logger: Option[IzLogger],
+//                        )
+//     extends HelloWorldService[Result[IO]]{
+
+//         def hello(name: String, town: Option[String]): Result[IO, Greeting]= ???
+             
+// }
+    
 class HttpServerImpl2(
                        logger: Option[IzLogger],
                        )
-    extends HelloWorldService[Result], CommonHTTP(logger){
+    extends HelloWorldService[Result]{
 
-        def hello(name: String, town: Option[String]): Result2[Greeting]= 
+        def hello(name: String, town: Option[String]): Result[Greeting]= 
           logger.foreach(_.info(s"Hello $name from $town!"))
         
-          Left(NotFoundError("404", "Not Found", "Not Found"))
-          // Right(IO.pure{Greeting(s"Hello $name from $town!")})
+          // throw new Exception("Error =====")
+          // throw ServiceUnavailableError("", "",  "Error =====")
+        
+          EitherT(IO{Left(NotFoundError("404", "Not Found", "Not Found"))})
+          // EitherT(IO{Right(Greeting(s"Hello $name from $town!"))})
              
 }
 
 object Converter:
   val toIO: PolyFunction[Result, IO] = new PolyFunction[Result, IO]{
     def apply[A](result: Result[A]): IO[A] = {
-      result match {
-        case Left(error) => IO.raiseError(error)
-        case Right(value) => value
-      }
+      
+      result.foldF(
+        error => IO.raiseError(error),
+        value => IO{value}
+      )
+
+      // result match {
+      //   case Left(error) => IO.raiseError(error)
+      //   case Right(value) => value //.handleErrorWith(server.common.errorHandler)
+      // }
     }
   }
 

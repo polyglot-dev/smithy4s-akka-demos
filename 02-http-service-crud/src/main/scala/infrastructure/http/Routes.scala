@@ -21,6 +21,8 @@ import java.util.UUID
 import smithy4s.http4s.SimpleRestJsonBuilder
 import org.http4s.dsl.io.*
 
+import smithy4s.kinds.PolyFunction
+
 import logstage.IzLogger
 
 import types.*
@@ -32,20 +34,39 @@ import io.github.arainko.ducktape.*
 import infrastructure.internal.common as smError
 import smithy4s.http.PayloadError
 
+object Converter:
+
+    val toIO: PolyFunction[Result, IO] =
+      new PolyFunction[Result, IO] {
+
+        def apply[A](result: Result[A]): IO[A] = {
+          result.foldF(
+            error => IO.raiseError(error),
+            value => IO { value }
+          )
+        }
+
+      }
+
 class ServerRoutes(
-                service: AdvertiserService[IO],
+                service: AdvertiserService[Result],
                 logger: Option[IzLogger]):
 
+    def translateMessage(message: String): String ={
+      val i = message.indexOf(", offset:")
+      if (i == -1) message else message.substring(0, i)
+    }
+
     private val mainRoutes: Resource[IO, HttpRoutes[IO]] =
-      SimpleRestJsonBuilder.routes(HttpServerImpl(service, logger))
+      SimpleRestJsonBuilder.routes(HttpServerImpl(service, logger).transform(Converter.toIO))
         .mapErrors {
-          case e: PayloadError
+          case e@PayloadError(_, expected, message) =>
               // Throwable
-              =>
-            //  e.
             // val cls = e.getClass().getCanonicalName()
             // logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
-            ErrorsBuilder.badRequestError(e.getMessage())
+            ErrorsBuilder.badRequestError(s"Related to $expected, comment: ${translateMessage(message)}")
+            .into[smError.BadRequestError]
+              .transform(Field.renamed(_.description, _.message))
 
           case e: ServiceUnavailable =>
             // e.printStackTrace()

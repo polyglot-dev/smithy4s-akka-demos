@@ -16,9 +16,9 @@ class ServerRoutes(
                logger: Option[IzLogger]
                ):
     private val mainRoutes: Resource[IO, HttpRoutes[IO]] = SimpleRestJsonBuilder.routes(HttpServerImpl2(logger).transform(Converter.toIO))
-    //   .mapErrors(
-    //     ex => ServiceUnavailableError(503, ex.getMessage())
-    //   )
+      .mapErrors(
+        ex => ServiceUnavailableError("", "", ex.getMessage())
+      )
     .resource
 
     private val healthCheck: HttpRoutes[IO] = HttpRoutes.of[IO]:
