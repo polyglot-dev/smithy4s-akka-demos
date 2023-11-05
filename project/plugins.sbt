@@ -1,4 +1,3 @@
-
 resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")

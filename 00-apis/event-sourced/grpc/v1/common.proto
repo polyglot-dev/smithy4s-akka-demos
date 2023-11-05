@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "api.common";
+
+package api.common;
+
+message BadRequestError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message NotFoundError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message InternalServerError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message ServiceUnavailableError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message UnauthorizedError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message ForbiddenError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message ConflictError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}
+
+message RequestTimeoutError{
+    string code = 1;
+    string title = 2;
+    string description = 3;
+}

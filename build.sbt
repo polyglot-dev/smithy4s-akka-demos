@@ -6,24 +6,26 @@ import scala.io.Source
 
 ThisBuild / versionScheme := Some("early-semver")
 
+lazy val autoImportSettingsCommon = Seq(
+  "java.lang",
+  "scala",
+  "scala.Predef",
+  "scala.util.chaining",
+  "scala.concurrent",
+  "scala.concurrent.duration",
+  "cats.implicits",
+  "cats",
+  "cats.effect",
+  "scala.jdk.CollectionConverters",
+  "scala.jdk.FunctionConverters",
+)
 
-lazy val autoImportSettings = Seq(
-  scalacOptions += Seq(
-    "java.lang",
-    "scala",
-    "scala.Predef",
-    "scala.util.chaining",
-    "scala.concurrent",
-    "scala.concurrent.duration",
-    "cats.implicits",
-    "cats",
-    "cats.effect",
+lazy val autoImportSettingsFs2 =
+  autoImportSettingsCommon ++ Seq(
     "fs2",
     "fs2.concurrent",
     "org.http4s",
   )
-    .mkString(start = "-Yimports:", sep = ",", end = ""),
-)
 
 lazy val commonSettings = Seq(
   update / evictionWarningOptions := EvictionWarningOptions.empty,
@@ -53,24 +55,24 @@ def sysPropOrDefault
   (propName: String, default: String)
   : String = Option(System.getProperty(propName)).getOrElse(default)
 
-lazy val startupProject =
-  sysPropOrDefault("active-app", "root") match {
-    case "crud-http" => "crudHttpService"
-    case "tracing-http" => "tracingHttpService"
-    case "tracing-grpc" => "tracingGrpcService"
-    case "basic-http" => "basic_rest"
-    case _      => "root"
-  }
+// lazy val startupProject =
+//   sysPropOrDefault("active-app", "root") match {
+//     case "crud-http" => "crudHttpService"
+//     case "tracing-http" => "tracingHttpService"
+//     case "tracing-grpc" => "tracingGrpcService"
+//     case "event-sourced-grpc" => "eventSourcedGrpcService"
+//     case "basic-http" => "basic_rest"
+//     case _      => "root"
+//   }
 
-// This prepends the String you would type into the shell
-lazy val startupTransition: State => State = {
-  s:
-      State =>
-          s"project $startupProject" :: s
-}
+// lazy val startupTransition: State => State = {
+//   s:
+//       State =>
+//           s"project $startupProject" :: s
+// }
 
 lazy val dummy = project
-  .in(file("dummy"))
+  .in(file("artifacts/dummy"))
   .settings(commonSettings)
   .settings(
     name := "dummy",
@@ -81,16 +83,44 @@ lazy val dummy = project
 lazy val root = project
   .in(file("."))
   .settings(
-    Global / onLoad := {
-      val old = (Global / onLoad).value
-      // compose the new transition on top of the existing one
-      // in case your plugins are using this hook.
-      startupTransition.compose(old)
-    },
+    // Global / onLoad := {
+    //   val old = (Global / onLoad).value
+    //   startupTransition.compose(old)
+    // },
     name := "root",
     publish / skip := true
   )
   .settings(commonSettings)
+  .aggregate(
+    if (sysPropOrDefault("active-app", "tracing-rest") == "tracing-rest")
+      tracingHttpService
+    else
+      dummy
+  )
+  .aggregate(
+    if (sysPropOrDefault("active-app", "tracing-grpc") == "tracing-grpc")
+      tracingGrpcService
+    else
+      dummy
+  )
+  .aggregate(
+    if (sysPropOrDefault("active-app", "event-sourced-grpc") == "event-sourced-grpc")
+      eventSourcedGrpcService
+    else
+      dummy
+  )
+  .aggregate(
+    if (sysPropOrDefault("active-app", "crud-rest") == "crud-rest")
+      crudHttpService
+    else
+      dummy
+  )
+  .aggregate(
+    if (sysPropOrDefault("active-app", "basic-rest") == "basic-rest")
+      basic_rest
+    else
+      dummy
+  )
   .dependsOn(
     if (sysPropOrDefault("active-app", "tracing-rest") == "tracing-rest")
       tracingHttpService
@@ -100,6 +130,12 @@ lazy val root = project
   .dependsOn(
     if (sysPropOrDefault("active-app", "tracing-grpc") == "tracing-grpc")
       tracingGrpcService
+    else
+      dummy
+  )
+  .dependsOn(
+    if (sysPropOrDefault("active-app", "event-sourced-grpc") == "event-sourced-grpc")
+      eventSourcedGrpcService
     else
       dummy
   )
@@ -116,16 +152,15 @@ lazy val root = project
       dummy
   )
 
-
 // Tracing
 lazy val tracingHttpService = project
   .in(file("00-systems/tracing/02-http-service"))
   .enablePlugins(JavaAppPackaging)
   .dependsOn(`smithy4s-defs`)
-  .dependsOn(api_grpc_fs2)
+  .dependsOn(api_grpc_fs2_tracing)
   .settings(commonSettings)
-  .settings(autoImportSettings)
   .settings(
+    scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
     name := "http-service",
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
@@ -139,8 +174,10 @@ lazy val tracingHttpService = project
 lazy val tracingGrpcService = project
   .in(file("00-systems/tracing/02-grpc-akka"))
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(api_grpc_akka)
+  .dependsOn(api_grpc_akka_tracing)
+  .settings(commonSettings)
   .settings(
+    scalacOptions += autoImportSettingsCommon.mkString(start = "-Yimports:", sep = ",", end = ""),
     name := "grpc-akka",
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
@@ -152,7 +189,7 @@ lazy val tracingGrpcService = project
   .settings(commonSettings)
   .settings(
     Seq(
-      libraryDependencies ++= Tracing.grpcAkkaDependencies,
+      libraryDependencies ++= Akka.grpcAkkaDependencies,
     )
   )
 
@@ -168,7 +205,7 @@ lazy val `smithy4s-defs` = project
     libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
   )
 
-lazy val api_grpc_akka = project
+lazy val api_grpc_akka_tracing = project
   .in(file("artifacts/tracing/01-api-grpc-akka"))
   .enablePlugins(AkkaGrpcPlugin)
   .settings(commonSettings)
@@ -180,12 +217,12 @@ lazy val api_grpc_akka = project
     organization := "com.demos.grpc",
     name := "api-grpc-akka",
     Compile / PB.protoSources ++= Seq(
-      (`grpc-def` / Compile / baseDirectory).value / "grpc" / "v1",
+      (`grpc-def-tracing` / Compile / baseDirectory).value / "grpc" / "v1",
     ),
     akkaGrpcCodeGeneratorSettings += "server_power_apis"
   )
 
-lazy val api_grpc_fs2 = project
+lazy val api_grpc_fs2_tracing = project
   .in(file("artifacts/tracing/01-api-grpc-fs2"))
   .enablePlugins(Fs2Grpc)
   .settings(commonSettings)
@@ -196,14 +233,13 @@ lazy val api_grpc_fs2 = project
     organization := "com.demos.grpc",
     name := "api-grpc-fs2",
     Compile / PB.protoSources ++= Seq(
-      (`grpc-def` / Compile / baseDirectory).value / "grpc" / "v1",
+      (`grpc-def-tracing` / Compile / baseDirectory).value / "grpc" / "v1",
     ),
     libraryDependencies ++= Tracing.grpcFs2Dependencies,
   )
 
-lazy val `grpc-def` = project.in(file("00-apis/tracing/grpc"))
+lazy val `grpc-def-tracing` = project.in(file("00-apis/tracing/grpc"))
   .settings(commonSettings)
-  .disablePlugins(AkkaGrpcPlugin)
   .settings(
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
@@ -212,11 +248,10 @@ lazy val `grpc-def` = project.in(file("00-apis/tracing/grpc"))
 
 // END ==== Tracing
 
-
 lazy val generateSmithyFromOpenApi = taskKey[Unit]("Generate smithy sources")
 lazy val smithyFilesPath = taskKey[String]("Smithy otuput path")
 lazy val openApiFilesPath = taskKey[String]("OpenApi file path")
-smithyFilesPath  := "00-systems/cruds/01-api-rest-crud/src/main/smithy"
+smithyFilesPath := "00-systems/cruds/01-api-rest-crud/src/main/smithy"
 openApiFilesPath := "00-apis/cruds/rest/"
 
 generateSmithyFromOpenApi := {
@@ -253,37 +288,13 @@ generateSmithyFromOpenApi := {
 PB.protocVersion := "3.23.1"
 
 // REST CRUD demo
-lazy val rest_crud = project
-  .in(file("00-systems/cruds/01-api-rest-crud"))
-  .enablePlugins(Smithy4sCodegenPlugin)
-  // .disablePlugins(AkkaGrpcPlugin)
-  .settings(commonSettings)
-  .settings(
-    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
-      "0.1.0-SNAPSHOT"
-    ),
-    name := "api-rest",
-    libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
-
-    /*
-
-    libraryDependencies ++= Seq(
-        //  "com.disneystreaming.smithy4s" %% "smithy4s-http4s"        % "0.17.14",
-         "com.disneystreaming.smithy4s" %% "smithy4s-http4s"        % "0.18.3",
-        //  "com.disneystreaming.smithy4s" %% "smithy4s-http4s"        % smithy4sVersion.value,
-         "com.disneystreaming.smithy"    % "smithytranslate-traits" % "0.3.14",
-    ),
-    
-    */
-  )
-
 lazy val crudHttpService = project
   .in(file("00-systems/cruds/02-http-service-crud"))
   .enablePlugins(JavaAppPackaging)
   .dependsOn(rest_crud)
   .settings(commonSettings)
-  .settings(autoImportSettings)
   .settings(
+    scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
     Compile / run / fork := true,
     Test / parallelExecution := false,
     name := "http-service-crud",
@@ -295,33 +306,29 @@ lazy val crudHttpService = project
     Compile / discoveredMainClasses := Seq(),
     libraryDependencies ++= Cruds.httpServiceDependencies,
   )
-  
 
-// END ==== REST CRUD demo
-
-
-// Smithy Basic demo
-lazy val `basic-smithy4s-defs` = project
-  .in(file("00-systems/smithy-basic/01-api-rest-basic"))
+lazy val rest_crud = project
+  .in(file("00-systems/cruds/01-api-rest-crud"))
   .enablePlugins(Smithy4sCodegenPlugin)
-  .disablePlugins(AkkaGrpcPlugin)
   .settings(commonSettings)
   .settings(
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
     ),
-    name := "api-rest-basic",
+    name := "api-rest",
     libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
   )
-  
+
+// END ==== REST CRUD demo
+
+// Smithy Basic demo
 lazy val basic_rest = project
   .in(file("00-systems/smithy-basic/02-http-service-basic"))
   .enablePlugins(JavaAppPackaging)
-  .disablePlugins(AkkaGrpcPlugin)
   .dependsOn(`basic-smithy4s-defs`)
   .settings(commonSettings)
-  .settings(autoImportSettings)
   .settings(
+    scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
     Compile / run / fork := true,
     Test / parallelExecution := false,
     name := "http-service-basic",
@@ -334,11 +341,84 @@ lazy val basic_rest = project
     libraryDependencies ++= Basic.httpServiceDependencies,
   )
 
+lazy val `basic-smithy4s-defs` = project
+  .in(file("00-systems/smithy-basic/01-api-rest-basic"))
+  .enablePlugins(Smithy4sCodegenPlugin)
+  .settings(commonSettings)
+  .settings(
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    name := "api-rest-basic",
+    libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
+  )
 
 // END ==== Smithy Basic demo
 
+// Akka event sourced
+lazy val eventSourcedGrpcService = project
+  .in(file("00-systems/event-sourced/02-grpc-akka"))
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(api_grpc_akka_event_sourced)
+  .dependsOn(core_event_sourced)
+  .settings(
+    // Compile / run / fork := true,
+    scalacOptions += autoImportSettingsCommon.mkString(start = "-Yimports:", sep = ",", end = ""),
+    name := "grpc-akka",
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    Universal / packageName := name.value,
+    Compile / mainClass := Some("main.App"),
+    Compile / discoveredMainClasses := Seq(),
+  )
+  .settings(commonSettings)
+  .settings(
+    Seq(
+      libraryDependencies ++= Akka.grpcAkkaDependencies,
+    )
+  )
 
-// fork := true
+lazy val core_event_sourced = project
+  .in(file("00-systems/event-sourced/01-core"))
+  .settings(
+    name := "event-sourced-core",
+  )
+  .settings(commonSettings)
+  .settings(
+    Seq(
+      libraryDependencies ++= Akka.coreDependencies,
+    )
+  )
+
+lazy val api_grpc_akka_event_sourced = project
+  .in(file("artifacts/event-sourced/01-api-grpc-akka"))
+  .enablePlugins(AkkaGrpcPlugin)
+  .settings(commonSettings)
+  .settings(
+    Compile / run / fork := true,
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    organization := "com.demos.grpc",
+    name := "api-grpc-akka",
+    Compile / PB.protoSources ++= Seq(
+      (`grpc-def-event-sourced` / Compile / baseDirectory).value / "grpc" / "v1",
+    ),
+    akkaGrpcCodeGeneratorSettings += "server_power_apis"
+  )
+
+lazy val `grpc-def-event-sourced` = project.in(file("00-apis/event-sourced"))
+  .settings(commonSettings)
+  .settings(
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+  )
+
+// END ==== Akka event sourcing
+
+fork := true
 
 run / javaOptions ++= {
   val props = sys.props.toList

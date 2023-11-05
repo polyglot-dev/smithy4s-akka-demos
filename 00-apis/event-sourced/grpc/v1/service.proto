@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "api.eventSourced.grpc";
+
+package api.eventSourced.grpc;
+
+message CreatePersonRequest {
+    string name = 1;
+    string town = 2;
+}
+
+message CreatePersonResponse {
+    string message = 1;
+}
+
+message UpdatePersonRequest {
+    string name = 1;
+    string town = 2;
+    string id = 3;
+}
+
+message UpdatePersonResponse {
+    string message = 1;
+}
+
+message GetPersonRequest {
+    string id = 1;
+}
+
+message GetPersonResponse {
+    string name = 1;
+    string town = 2;
+}
+
+service HomeService {
+    rpc CreatePerson(CreatePersonRequest) returns (CreatePersonResponse) {}
+    rpc UpdatePerson(UpdatePersonRequest) returns (UpdatePersonResponse) {}
+    rpc GetPerson(GetPersonRequest) returns (GetPersonResponse) {}
+}

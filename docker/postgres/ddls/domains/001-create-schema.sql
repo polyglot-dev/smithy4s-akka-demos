@@ -1,4 +1,10 @@
 
+CREATE TABLE IF NOT EXISTS person_projection(
+      id UUID PRIMARY KEY,
+      name VARCHAR,
+      town VARCHAR
+);
+
 CREATE TABLE IF NOT EXISTS person(
       id BIGSERIAL PRIMARY KEY,
       name VARCHAR,

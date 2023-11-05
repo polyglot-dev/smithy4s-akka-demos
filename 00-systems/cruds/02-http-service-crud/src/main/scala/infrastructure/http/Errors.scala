@@ -1,8 +1,9 @@
 package infrastructure
 package http
 
-// import _root_.infrastructure.internal.common.*
+import cats.data.EitherT
 
+// format: off
 trait ServiceError extends Throwable
 
 trait RequestError  extends ServiceError
@@ -10,7 +11,6 @@ trait DBError       extends ServiceError
 trait ServerError   extends ServiceError
 trait SecurityError extends ServiceError
 
-import cats.data.EitherT
 
 type Result[A] = EitherT[IO, ServiceError, A]
 
@@ -21,6 +21,7 @@ case class NotFound(code: String, title: String, message: String)           exte
 case class InternalServer(code: String, title: String, message: String)     extends Throwable(message), ServerError
 case class Unauthorized(code: String, title: String, message: String)       extends Throwable(message), SecurityError
 case class Forbidden(code: String, title: String, message: String)          extends Throwable(message), SecurityError
+// format: on
 
 object ErrorsBuilder:
 
@@ -39,4 +40,3 @@ object ErrorsBuilder:
     def unauthorizedError(message: String): Unauthorized = Unauthorized("LOYA401", "unauthorized", message)
 
     def forbiddenError(message: String): Forbidden = Forbidden("LOYA403", "forbidden", message)
-    

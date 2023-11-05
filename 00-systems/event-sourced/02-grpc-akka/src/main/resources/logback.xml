@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+<!--            <pattern>[%date{ISO8601}] [%level] - %msg %n </pattern>-->
+            <pattern>[%date{ISO8601}] [%level] [%logger] [%marker] [%thread] - %msg %n </pattern>
+        </encoder>
+    </appender>
+
+   <logger name="slick.jdbc.JdbcBackend.statementAndParameter" level="debug" />
+   <!-- <logger name="slick.jdbc" level="error" /> -->
+   <!-- <logger name="com.zaxxer" level="error" /> -->
+
+   <logger name="com.intelygenz" level="info"/>
+   <logger name="akka.projection.jdbc" level="info"/>
+   
+   <logger name="scalikejdbc" level="info"/>
+   
+   <root level="info">
+        <appender-ref ref="STDOUT"/>
+   </root>
+</configuration>

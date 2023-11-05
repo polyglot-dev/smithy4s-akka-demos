@@ -27,6 +27,7 @@ object Dependencies {
     val http4s               = "0.23.18"
     val munitCatsEffect      = "2.0.0-M3"
     val circe                = "0.14.5"
+    val scalatest            = "3.2.17"
   }
 
   object Libraries {
@@ -48,11 +49,11 @@ object Dependencies {
 
     val akkaPersistenceCassandra   = "com.typesafe.akka"  %% "akka-persistence-cassandra"    % V.cassandra
     val akkaPersistenceR2dbc       = "com.lightbend.akka" %% "akka-persistence-r2dbc"        % V.akkaPersistenceR2dbc
+    val akkaPersistenceTestkit     = "com.typesafe.akka" %% "akka-persistence-testkit"       % V.akka                 % Test
     val akkaProjectionR2dbc        = "com.lightbend.akka" %% "akka-projection-r2dbc"         % V.akkaProjection
 
     val akkaProjectionCore         = "com.lightbend.akka" %% "akka-projection-core"          % V.akkaProjection
     val akkaProjectionEventsourced = "com.lightbend.akka" %% "akka-projection-eventsourced"  % V.akkaProjection
-
     val akkaHttp                   = "com.typesafe.akka"  %% "akka-http"                     % V.akkaHttp
     val akkaHttpSprayJson          = "com.typesafe.akka"  %% "akka-http-spray-json"          % V.akkaHttp
 
@@ -84,6 +85,7 @@ object Dependencies {
     val http4s                     = "org.http4s"         %% "http4s-ember-server"            % V.http4s
 
     val munitCatsEffect            = "org.typelevel"      %% "munit-cats-effect"              % V.munitCatsEffect % Test
+    val scalatest                  = "org.scalatest"      %% "scalatest"                      % V.scalatest       % Test
     val circeGeneric               = "io.circe"           %% "circe-generic"                  % V.circe
     val postgresCirce              = "org.tpolecat"       %% "doobie-postgres-circe"          % V.doobie
 
@@ -112,6 +114,17 @@ object Dependencies {
       "io.opentelemetry.instrumentation" % "opentelemetry-grpc-1.6"      % "1.31.0-alpha", // % "runtime"
     )
     
+    val grpcFs2Dependencies = Seq(
+      Libraries.grpc,
+      Libraries.grpcNettyShaded,
+      Libraries.scalapbCommonProtos,
+    )
+      
+      
+  }
+  
+  object Akka{
+
     val grpcAkkaDependencies = Seq(
         Libraries.akkaCluster,
         Libraries.akkaClusterSharding,
@@ -119,6 +132,8 @@ object Dependencies {
         Libraries.akkaSlf4j,
         Libraries.akkaPersistence,
         Libraries.akkaPersistenceCassandra,
+        Libraries.akkaPersistenceTestkit,
+        Libraries.scalatest,
         Libraries.akkaSerialization,
         Libraries.akkaProjectionCore,
         Libraries.akkaProjectionEventsourced,
@@ -137,14 +152,14 @@ object Dependencies {
         Libraries.akkaMangementClusterHttp,
         Libraries.akkaDiscoveryKubernetes,
       )
-    
-    val grpcFs2Dependencies = Seq(
-      Libraries.grpc,
-      Libraries.grpcNettyShaded,
-      Libraries.scalapbCommonProtos,
+
+    val coreDependencies = Seq(
+        Libraries.cats,
+        Libraries.catsEffect,
+        Libraries.ducktape,
+        Libraries.akkaActor,
     )
-      
-      
+
   }
   
   object Cruds{

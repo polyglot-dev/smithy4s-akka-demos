@@ -20,7 +20,15 @@ docker-compose-up-pre:
   set -euxo pipefail
 
   if [[ ! -d "{{postgres_data_dir}}" ]]; then
-    cat docker/postgres/ddls/create_user.sql docker/postgres/ddls/create_db.sql docker/postgres/ddls/domains/*.sql docker/postgres/ddls/grant_permissions.sql docker/postgres/ddls/create_test_db.sql docker/postgres/ddls/domains/*.sql docker/postgres/ddls/grant_permissions.sql > {{postgres_sql_file}}
+    cat docker/postgres/ddls/create_user.sql \
+      docker/postgres/ddls/create_db.sql \
+      docker/postgres/ddls/domains/*.sql \
+      docker/postgres/ddls/akka.sql \
+      docker/postgres/ddls/grant_permissions.sql \
+      docker/postgres/ddls/create_test_db.sql \
+      docker/postgres/ddls/domains/*.sql \
+      docker/postgres/ddls/akka.sql \
+      docker/postgres/ddls/grant_permissions.sql > {{postgres_sql_file}}
   fi
 
 docker-compose-down-pre:
@@ -84,7 +92,7 @@ docker-compose-down: docker-compose-down-pre
 # Remove docker data volumes
 clean-docker-compose-data:
   sudo rm -Rf docker/data
-  mkdir -p docker/data
+  mkdir -p docker/data/.kafka
   chmod -R 777 docker/data
 
 crud:
@@ -95,6 +103,22 @@ tracing-http:
 
 tracing-grpc:
   sbt -Dactive-app=tracing-grpc
+
+event-sourced-ports-run seconds_to_wait='0':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  sleep {{seconds_to_wait}}
+  echo "Starting event-sourced-ports"
+
+event-sourced-grpc-run seconds_to_wait='0':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  sleep {{seconds_to_wait}}
+  echo "Starting a cluster node using port $AKKA_CLUSTER_APP_PORT"
+  sbt -Dactive-app=event-sourced-grpc -Dconfig.file=00-systems/event-sourced/02-grpc-akka/src/main/resources/application-dev.conf r
+
+event-sourced-grpc:
+  sbt -Dactive-app=event-sourced-grpc -Dconfig.file=00-systems/event-sourced/02-grpc-akka/src/main/resources/application-dev.conf
 
 basic:
   sbt -Dactive-app=basic

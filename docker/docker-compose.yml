@@ -21,6 +21,30 @@ services:
     environment:
       POSTGRES_PASSWORD: pass
 
+  cassandra_db:
+    image: cassandra:4.1.3
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - ./data/.cassandra:/var/lib/cassandra
+    environment:
+      - MAX_HEAP_SIZE=256M
+      - HEAP_NEWSIZE=128M
+      - CASSANDRA_CLUSTER_NAME=cassandra-akka-cluster
+    networks:
+        - cassandra_network
+
+  cassandra_temp:
+    image: cassandra:4.1.3
+    volumes:
+      - ./cassandra/scripts/bash:/docker-entrypoint.sh
+      - ./cassandra/scripts/cql:/tmp/cql
+    networks:
+      - cassandra_network
+    command: >
+      bash ./docker-entrypoint.sh/execute-cql.sh
+
   localstack:
     image: localstack/localstack
     ports:
@@ -32,3 +56,6 @@ services:
     volumes:
       - "./data/.localstack:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+
+networks:
+  cassandra_network:
