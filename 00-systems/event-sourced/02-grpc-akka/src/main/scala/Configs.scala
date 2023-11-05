@@ -29,9 +29,13 @@ object Configs:
                            restartMaxBackoff: FiniteDuration,
                            restartRandomFactor: Double)
 
-    case class PersonEntityConfig(conf: EntityConfig):
+    case class PersonEntityConfig(conf: EntityConfig, projection: ProjectionConfig):
         export conf.*
 
     case class ReadSideGrpcServiceConfig(
                                       host: HostConfig):
         export host.*
+
+    case class ProjectionConfig(
+                               groupAfterEnvelopes: Int,
+                               groupAfterDuration: FiniteDuration)

@@ -22,8 +22,9 @@ import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
 
 import akka.projection.ProjectionId
 import akka.projection.r2dbc.scaladsl.R2dbcProjection
+import services.Configs.PersonEntityConfig
 
-class PersonProjection()(using system: ActorSystem[Nothing]):
+class PersonProjection()(using system: ActorSystem[Nothing], config: PersonEntityConfig):
 
     private val tags: List[String] = List(
       EventsTags.PersonCreateUpdated.value,
@@ -58,5 +59,7 @@ class PersonProjection()(using system: ActorSystem[Nothing]):
             sourceProvider,
             handler = () => new PersonProjectionHandler()
           )
-          .withGroup(groupAfterEnvelopes = 3, groupAfterDuration = 500.seconds)
+          .withGroup(groupAfterEnvelopes = config.projection.groupAfterEnvelopes,
+                     groupAfterDuration = config.projection.groupAfterDuration
+                    )
     end makeProjection
