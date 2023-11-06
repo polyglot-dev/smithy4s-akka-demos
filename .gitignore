@@ -39,6 +39,6 @@ docker/.profile
 .scala-build/
 .venv/
 
-notes.txt
+notes*.txt
 
 00-systems/cruds/01-api-rest-crud/src/main/smithy/

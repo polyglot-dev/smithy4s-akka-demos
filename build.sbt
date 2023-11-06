@@ -211,6 +211,7 @@ lazy val api_grpc_akka_tracing = project
   .settings(commonSettings)
   .settings(
     Compile / run / fork := true,
+    PB.protocVersion := "3.25.0",
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
     ),
@@ -285,7 +286,6 @@ generateSmithyFromOpenApi := {
     throw new IllegalStateException("Smithy generation failed!")
 }
 
-PB.protocVersion := "3.23.1"
 
 // REST CRUD demo
 lazy val crudHttpService = project
@@ -396,7 +396,8 @@ lazy val api_grpc_akka_event_sourced = project
   .enablePlugins(AkkaGrpcPlugin)
   .settings(commonSettings)
   .settings(
-    Compile / run / fork := true,
+    // Compile / run / fork := true,
+    PB.protocVersion := "3.25.0",
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
       "0.1.0-SNAPSHOT"
     ),
@@ -408,6 +409,7 @@ lazy val api_grpc_akka_event_sourced = project
     akkaGrpcCodeGeneratorSettings += "server_power_apis"
   )
 
+    
 lazy val `grpc-def-event-sourced` = project.in(file("00-apis/event-sourced"))
   .settings(commonSettings)
   .settings(
