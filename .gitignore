@@ -40,5 +40,6 @@ docker/.profile
 .venv/
 
 notes*.txt
+*deps.txt
 
 00-systems/cruds/01-api-rest-crud/src/main/smithy/

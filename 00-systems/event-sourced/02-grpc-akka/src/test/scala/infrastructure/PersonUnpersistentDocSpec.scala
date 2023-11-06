@@ -30,7 +30,7 @@ class AccountExampleUnpersistentDocSpec extends AnyWordSpecLike {
     }
   }
 
-  given config: PersonEntityConfig = PersonEntityConfig(EntityConfig(1, 1, 2.second, 2.second, 2.0))
+  given config: PersonEntityConfig = PersonEntityConfig(EntityConfig(1, 1, 2.second, 2.second, 2.0), ProjectionConfig(1, 2.second))
 
   private def onAnExistingPerson: UnpersistentBehavior.EventSourced[Command, Event, Option[PersonEntity.State]] =
     UnpersistentBehavior.fromEventSourced(PersonEntity(PersistenceId("person", "1")),
