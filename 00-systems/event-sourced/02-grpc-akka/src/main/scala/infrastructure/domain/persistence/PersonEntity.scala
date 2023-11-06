@@ -44,12 +44,8 @@ object PersonEntity:
           Effect.persist(PersonCreated(person.name, person.town, person.address)).thenReply(replyTo)(
             _ => Done
           )
-        case UpdatePersonCommand(_, replyTo)              =>
-          Effect.none.thenReply(replyTo)(
-            _ => ResultError(TransportError.NotFound, "Person do not exists")
-          )
-        case GetPersonCommand(replyTo)                    =>
-          Effect.none.thenReply(replyTo)(
+        case default: Command                             =>
+          Effect.none.thenReply(default.replyTo)(
             _ => ResultError(TransportError.NotFound, "Person do not exists")
           )
 
