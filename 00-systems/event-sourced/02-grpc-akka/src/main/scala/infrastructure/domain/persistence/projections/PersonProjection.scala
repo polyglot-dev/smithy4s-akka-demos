@@ -26,25 +26,20 @@ import services.Configs.PersonEntityConfig
 
 class PersonProjection()(using system: ActorSystem[Nothing], config: PersonEntityConfig):
 
-    private val tags: List[String] = List(
-      EventsTags.PersonCreateUpdated.value,
-    )
-
     val logger: Logger = LoggerFactory.getLogger(getClass)
 
     def init(): Unit =
-      for tag <- tags do
-          val projection = makeProjection("person", tag)
-          ClusterSingleton(system).init(
-            SingletonActor(
-              ProjectionBehavior(projection),
-              projection.projectionId.id
-            )
-              .withStopMessage(ProjectionBehavior.Stop)
-          )
+      val projection = makeProjection("person", EventsTags.PersonCreateUpdated.value)
+      ClusterSingleton(system).init(
+        SingletonActor(
+          ProjectionBehavior(projection),
+          projection.projectionId.id
+        )
+          .withStopMessage(ProjectionBehavior.Stop)
+      )
     end init
 
-    def makeProjection(projectionTag: String, targetTag: String) =
+    private def makeProjection(projectionTag: String, targetTag: String) =
         given ec: ExecutionContext = system.executionContext
         val sourceProvider: SourceProvider[Offset, EventEnvelope[entities.person.Events.Event]] =
           EventSourcedProvider.eventsByTag[entities.person.Events.Event](
