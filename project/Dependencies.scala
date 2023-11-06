@@ -28,7 +28,7 @@ object Dependencies {
     val munitCatsEffect      = "2.0.0-M3"
     val circe                = "0.14.5"
     val scalatest            = "3.2.17"
-    val chimney              = "0.8.1"
+    val chimney              = "0.8.2"
     val avro4s               = "5.0.6"
   }
 
@@ -95,7 +95,10 @@ object Dependencies {
     val munitCatsEffect            = "org.typelevel"        %% "munit-cats-effect"              % V.munitCatsEffect % Test
     val scalatest                  = "org.scalatest"        %% "scalatest"                      % V.scalatest       % Test
 
+    val circeCore                  = "io.circe"             %% "circe-core"                  % V.circe
     val circeGeneric               = "io.circe"             %% "circe-generic"                  % V.circe
+    val circeParser                = "io.circe"             %% "circe-parser"                  % V.circe
+
     val postgresCirce              = "org.tpolecat"         %% "doobie-postgres-circe"          % V.doobie
     val circeOptics                = "io.circe"             %% "circe-optics"                   % V.circe
 
@@ -137,6 +140,10 @@ object Dependencies {
   object Akka{
 
     val grpcAkkaDependencies = Seq(
+        // Libraries.ducktape,
+        Libraries.chimney,
+        Libraries.chimneyProtobufs,
+        Libraries.chimneyJavaCollections,
         Libraries.akkaCluster,
         Libraries.akkaClusterSharding,
         Libraries.akkaDiscovery,
@@ -159,6 +166,9 @@ object Dependencies {
         Libraries.kafka,
         Libraries.distageCore,
         Libraries.distageConfig,
+        Libraries.circeGeneric,
+        Libraries.circeCore,
+        Libraries.circeParser,
         Libraries.akkaMangmentCltrBootstrap,
         Libraries.akkaMangementClusterHttp,
         Libraries.akkaDiscoveryKubernetes,
@@ -167,7 +177,7 @@ object Dependencies {
     val coreDependencies = Seq(
         Libraries.cats,
         Libraries.catsEffect,
-        Libraries.ducktape,
+        // Libraries.ducktape,
         Libraries.chimney,
         Libraries.akkaActor,
     )

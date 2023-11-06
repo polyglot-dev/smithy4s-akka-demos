@@ -15,13 +15,13 @@ trait PersonCommandHandler:
     def applyCommand(cmd: Command): PersonEntity.ReplyEffect =
       cmd match
         case UpdatePersonCommand(p: PersonUpdate, replyTo) =>
-          Effect.persist(PersonUpdated(p.name, p.town)).thenReply(replyTo)(
+          Effect.persist(PersonUpdated(p.name, p.town, p.address)).thenReply(replyTo)(
             _ => Done
           )
 
         case GetPersonCommand(replyTo) =>
           Effect.none.thenReply(replyTo)(
-            _ => Person(name, town)
+            _ => Person(name, town, address)
           )
 
         case CreatePersonCommand(p: Person, replyTo) =>

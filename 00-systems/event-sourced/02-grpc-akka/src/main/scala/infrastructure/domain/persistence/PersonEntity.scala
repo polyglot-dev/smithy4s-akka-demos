@@ -33,7 +33,7 @@ object PersonEntity:
     type ReplyEffect = akka.persistence.typed.scaladsl.ReplyEffect[Event, Option[State]]
 
 // format: off
-    case class State(name: String, town: Option[String]) extends CborSerializable, 
+    case class State(name: String, town: Option[String], address: Option[Address]) extends CborSerializable, 
                                                                  PersonCommandHandler,
                                                                  PersonEventHandler
 // format: on
@@ -41,7 +41,7 @@ object PersonEntity:
     def onFirstCommand(cmd: Command): ReplyEffect =
       cmd match
         case CreatePersonCommand(person: Person, replyTo) =>
-          Effect.persist(PersonCreated(person.name, person.town)).thenReply(replyTo)(
+          Effect.persist(PersonCreated(person.name, person.town, person.address)).thenReply(replyTo)(
             _ => Done
           )
         case UpdatePersonCommand(_, replyTo)              =>
@@ -55,8 +55,8 @@ object PersonEntity:
 
     def onFirstEvent(event: Event): State =
       event match
-        case PersonCreated(name, town) => State(name, town)
-        case _                         => throw new IllegalStateException(s"unexpected event [$event] in empthy state")
+        case PersonCreated(name, town, address) => State(name, town, address)
+        case _                                  => throw new IllegalStateException(s"unexpected event [$event] in empthy state")
 
     def apply
       (persistenceId: PersistenceId)(using config: PersonEntityConfig)

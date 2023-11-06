@@ -29,14 +29,14 @@ class PersonProjection()(using system: ActorSystem[Nothing], config: PersonEntit
     val logger: Logger = LoggerFactory.getLogger(getClass)
 
     def init(): Unit =
-      val projection = makeProjection("person", EventsTags.PersonCreateUpdated.value)
-      ClusterSingleton(system).init(
-        SingletonActor(
-          ProjectionBehavior(projection),
-          projection.projectionId.id
+        val projection = makeProjection("person", EventsTags.PersonCreateUpdated.value)
+        ClusterSingleton(system).init(
+          SingletonActor(
+            ProjectionBehavior(projection),
+            projection.projectionId.id
+          )
+            .withStopMessage(ProjectionBehavior.Stop)
         )
-          .withStopMessage(ProjectionBehavior.Stop)
-      )
     end init
 
     private def makeProjection(projectionTag: String, targetTag: String) =

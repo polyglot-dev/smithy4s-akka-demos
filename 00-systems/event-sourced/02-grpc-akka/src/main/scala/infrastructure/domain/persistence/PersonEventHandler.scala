@@ -11,6 +11,6 @@ trait PersonEventHandler:
 
     def applyEvent(event: Event): PersonEntity.State =
       event match
-        case PersonUpdated(Some(n), t) => copy(name = n, town = t)
-        case PersonUpdated(None, t)    => copy(town = t)
-        case PersonCreated(_, _)       => throw new IllegalStateException(s"unexpected event [$event] in active state")
+        case PersonUpdated(Some(n), t, a) => copy(n, t, a)
+        case PersonUpdated(None, t, a)    => copy(town = t, address = a)
+        case PersonCreated(_, _, _)       => throw new IllegalStateException(s"unexpected event [$event] in active state")

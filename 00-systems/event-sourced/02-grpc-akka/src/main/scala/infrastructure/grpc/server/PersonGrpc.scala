@@ -5,8 +5,6 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContextExecutor
 import akka.grpc.scaladsl.Metadata
 
-import io.github.arainko.ducktape.*
-
 import akka.grpc.GrpcServiceException
 
 import util.*
@@ -25,6 +23,10 @@ import ProtobufErrorsBuilder.*
 import transformers.CommonTransformers.given
 import transformers.PersonTransformers.given
 
+import io.scalaland.chimney.dsl.*
+import io.scalaland.chimney.protobufs.*
+import io.scalaland.chimney.javacollections.*
+
 import java.util.UUID
 
 trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecutor):
@@ -32,7 +34,7 @@ trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecuto
 
     def createPerson(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
         val id = UUID.randomUUID().toString
-        personService.createPerson(id, in.to[Person]).transform:
+        personService.createPerson(id, in.transformInto[Person]).transform:
             case Success(value) =>
               value match
                 case _: Done        => Success(CreatePersonResponse(id))
@@ -45,7 +47,7 @@ trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecuto
               )
 
     def updatePerson(in: UpdatePersonRequest, metadata: Metadata): Future[UpdatePersonResponse] =
-      personService.updatePerson(in.id, in.to[PersonUpdate]).transform:
+      personService.updatePerson(in.id, in.transformInto[PersonUpdate]).transform:
           case Success(value) =>
             value match
               case _: Done        => Success(UpdatePersonResponse("ok"))
@@ -64,10 +66,7 @@ trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecuto
           value match
             case person: Person =>
               Success(
-                person.into[GetPersonResponse]
-                  .transform(
-                    Field.const(_.unknownFields, scalapb.UnknownFieldSet.empty),
-                  )
+                person.transformInto[GetPersonResponse]
               )
             case e: ResultError => Failure(reportError(e))
 

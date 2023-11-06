@@ -5,9 +5,15 @@ option java_package = "api.eventSourced.grpc";
 
 package api.eventSourced.grpc;
 
+message Address{
+    string street = 1;
+    int32 no = 2;
+}
+
 message CreatePersonRequest {
     string name = 1;
     string town = 2;
+    Address address = 3;
 }
 
 message CreatePersonResponse {
@@ -17,7 +23,8 @@ message CreatePersonResponse {
 message UpdatePersonRequest {
     string name = 1;
     string town = 2;
-    string id = 3;
+    Address address = 3;
+    string id = 4;
 }
 
 message UpdatePersonResponse {
@@ -31,6 +38,7 @@ message GetPersonRequest {
 message GetPersonResponse {
     string name = 1;
     string town = 2;
+    Address address = 3;
 }
 
 service HomeService {

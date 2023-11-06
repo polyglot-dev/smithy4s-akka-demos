@@ -20,21 +20,23 @@ class AccountExampleUnpersistentDocSpec extends AnyWordSpecLike {
     "be updated with a new name" in {
       onAnExistingPerson {
         (testkit, eventProbe, snapshotProbe) =>
-            testkit.runAsk[Done | util.ResultError](UpdatePersonCommand(PersonUpdate(Some("new name"), None), _))
+            testkit.runAsk[Done | util.ResultError](UpdatePersonCommand(PersonUpdate(Some("new name"), None, None), _))
               .expectReply(Done)
 
-            eventProbe.expectPersisted(PersonUpdated(Some("new name"), None))
+            eventProbe.expectPersisted(PersonUpdated(Some("new name"), None, None))
 
-            testkit.runAsk[Person | util.ResultError](GetPersonCommand(_)).expectReply(Person("new name", None))
+            testkit.runAsk[Person | util.ResultError](GetPersonCommand(_)).expectReply(Person("new name", None, None))
       }
     }
   }
 
-  given config: PersonEntityConfig = PersonEntityConfig(EntityConfig(1, 1, 2.second, 2.second, 2.0), ProjectionConfig(1, 2.second))
+  given config: PersonEntityConfig = PersonEntityConfig(EntityConfig(1, 1, 2.second, 2.second, 2.0),
+                                                        ProjectionConfig(1, 2.second)
+                                                       )
 
   private def onAnExistingPerson: UnpersistentBehavior.EventSourced[Command, Event, Option[PersonEntity.State]] =
     UnpersistentBehavior.fromEventSourced(PersonEntity(PersistenceId("person", "1")),
-                                          Some(PersonEntity.State("name", None))
+                                          Some(PersonEntity.State("name", None, None))
                                          )
 
 }

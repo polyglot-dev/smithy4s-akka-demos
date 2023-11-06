@@ -286,7 +286,6 @@ generateSmithyFromOpenApi := {
     throw new IllegalStateException("Smithy generation failed!")
 }
 
-
 // REST CRUD demo
 lazy val crudHttpService = project
   .in(file("00-systems/cruds/02-http-service-crud"))
@@ -409,7 +408,6 @@ lazy val api_grpc_akka_event_sourced = project
     akkaGrpcCodeGeneratorSettings += "server_power_apis"
   )
 
-    
 lazy val `grpc-def-event-sourced` = project.in(file("00-apis/event-sourced"))
   .settings(commonSettings)
   .settings(
