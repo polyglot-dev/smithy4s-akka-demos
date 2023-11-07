@@ -27,10 +27,6 @@ message UpdatePersonRequest {
     string id = 4;
 }
 
-message UpdatePersonResponse {
-    string message = 1;
-}
-
 message GetPersonRequest {
     string id = 1;
 }
@@ -43,6 +39,6 @@ message GetPersonResponse {
 
 service HomeService {
     rpc CreatePerson(CreatePersonRequest) returns (CreatePersonResponse) {}
-    rpc UpdatePerson(UpdatePersonRequest) returns (UpdatePersonResponse) {}
+    rpc UpdatePerson(UpdatePersonRequest) returns (GetPersonResponse) {}
     rpc GetPerson(GetPersonRequest) returns (GetPersonResponse) {}
 }

@@ -46,11 +46,14 @@ trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecuto
                 GrpcServiceException(Code.INTERNAL, "Internal error", Seq(error))
               )
 
-    def updatePerson(in: UpdatePersonRequest, metadata: Metadata): Future[UpdatePersonResponse] =
+    def updatePerson(in: UpdatePersonRequest, metadata: Metadata): Future[GetPersonResponse] =
       personService.updatePerson(in.id, in.transformInto[PersonUpdate]).transform:
           case Success(value) =>
             value match
-              case _: Done        => Success(UpdatePersonResponse("ok"))
+              case person: Person =>
+                Success(
+                  person.transformInto[GetPersonResponse]
+                )
               case e: ResultError => Failure(reportError(e))
 
           case Failure(exception) =>

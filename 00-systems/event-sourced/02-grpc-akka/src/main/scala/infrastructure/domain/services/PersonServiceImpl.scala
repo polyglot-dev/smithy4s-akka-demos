@@ -38,11 +38,19 @@ class PersonServiceImpl(personSharding: PersonSharding)
       .ask(PersonEntity.CreatePersonCommand(data, _))
       .mapTo[Done | ResultError]
 
-    def updatePerson(id: String, data: PersonUpdate): Future[Done | ResultError] = personSharding
-      .entityRefFor(
-        PersonEntity.typeKey,
-        id
-      ).ask(PersonEntity.UpdatePersonCommand(data, _)).mapTo[Done | ResultError]
+    def updatePerson(id: String, data: PersonUpdate): Future[Person | ResultError] =
+        val ref = personSharding
+          .entityRefFor(
+            PersonEntity.typeKey,
+            id
+          )
+
+        ref
+          .ask(PersonEntity.UpdatePersonCommand(data, _)).mapTo[Done | ResultError]
+          .flatMap {
+            case Done           => ref.ask(PersonEntity.GetPersonCommand(_)).mapTo[Person | ResultError]
+            case e: ResultError => Future { e }
+          }
 
     def getPerson(id: String): Future[Person | ResultError] = personSharding
       .entityRefFor(PersonEntity.typeKey, id)
