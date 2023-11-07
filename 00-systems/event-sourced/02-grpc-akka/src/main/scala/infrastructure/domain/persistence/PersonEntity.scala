@@ -3,6 +3,7 @@ package entities
 
 import services.Configs.*
 
+import akka.serialization.jackson.CborSerializable
 import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors

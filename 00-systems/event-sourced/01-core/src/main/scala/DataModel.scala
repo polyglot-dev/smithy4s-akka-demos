@@ -2,6 +2,8 @@ package infrastructure
 package entities
 package person
 
+import akka.serialization.jackson.CborSerializable
+
 object DataModel:
 
     sealed trait Model extends CborSerializable

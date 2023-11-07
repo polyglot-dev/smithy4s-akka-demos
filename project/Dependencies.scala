@@ -180,6 +180,7 @@ object Dependencies {
         // Libraries.ducktape,
         Libraries.chimney,
         Libraries.akkaActor,
+        Libraries.akkaSerialization,
     )
 
   }

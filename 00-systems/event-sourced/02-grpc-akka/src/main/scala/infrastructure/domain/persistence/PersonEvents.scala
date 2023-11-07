@@ -2,6 +2,8 @@ package infrastructure
 package entities
 package person
 
+import akka.serialization.jackson.CborSerializable
+
 object Events:
     import DataModel.*
 

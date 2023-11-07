@@ -1,6 +1,8 @@
 package util
 
-case class ResultError(code: TransportError, message: String) extends infrastructure.CborSerializable
+import akka.serialization.jackson.CborSerializable
 
-enum TransportError extends infrastructure.CborSerializable:
+case class ResultError(code: TransportError, message: String) extends CborSerializable
+
+enum TransportError extends CborSerializable:
     case NotFound, BadRequest, InternalServerError, Unauthorized, Forbidden, Unknown
