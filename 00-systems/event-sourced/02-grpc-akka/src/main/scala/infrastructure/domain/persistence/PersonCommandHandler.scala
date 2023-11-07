@@ -20,8 +20,8 @@ trait PersonCommandHandler:
           )
 
         case GetPersonCommand(replyTo) =>
-          Effect.none.thenReply(replyTo)(
-            _ => Person(name, town, address)
+          Effect.reply(replyTo)(
+            Person(name, town, address)
           )
 
         case CreatePersonCommand(p: Person, replyTo) =>

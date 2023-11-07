@@ -13,7 +13,6 @@ import akka.persistence.query.Offset
 import akka.projection.ProjectionBehavior
 import akka.projection.eventsourced.EventEnvelope
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
-import akka.projection.scaladsl.ExactlyOnceProjection
 import akka.projection.scaladsl.SourceProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -9,22 +9,21 @@ import akka.Done
 import akka.actor.typed.ActorSystem
 import scala.concurrent.ExecutionContextExecutor
 import akka.util.Timeout
-import org.slf4j.LoggerFactory
-import java.util.Date
+// import org.slf4j.LoggerFactory
+// import java.util.Date
 
 import infrastructure.entities.person.DataModel.*
 import infrastructure.entities.PersonEntity
 
 import util.ResultError
-import util.TransportError
+// import util.TransportError
 
-import infrastructure.entities.person.Events.*
 import person.*
 
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Source
+// import akka.stream.scaladsl.Flow
+// import akka.stream.scaladsl.Source
 
-import services.TypesConversion.given
+// import services.TypesConversion.given
 
 class PersonServiceImpl(personSharding: PersonSharding)
                        (
@@ -32,7 +31,7 @@ class PersonServiceImpl(personSharding: PersonSharding)
                          config: ServiceConfig) extends PersonService:
     given ec: ExecutionContextExecutor = sys.executionContext
     given timeout: Timeout = config.requestToActorsTimeout
-    private val logger = LoggerFactory.getLogger(getClass)
+    // private val logger = LoggerFactory.getLogger(getClass)
 
     def createPerson(id: String, data: Person): Future[Done | ResultError] = personSharding
       .entityRefFor(PersonEntity.typeKey, id)

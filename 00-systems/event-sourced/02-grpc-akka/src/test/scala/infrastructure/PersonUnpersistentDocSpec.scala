@@ -4,13 +4,15 @@ import akka.persistence.testkit.scaladsl.UnpersistentBehavior
 import akka.persistence.typed.PersistenceId
 import akka.Done
 import org.scalatest.wordspec.AnyWordSpecLike
-import org.scalatest.matchers.should.Matchers
+
+// import org.scalatest.matchers.should.Matchers
+
+// import infrastructure.entities.person.Events.*
+// import infrastructure.entities.person.Commands.*
+// import infrastructure.entities.person.DataModel.*
 
 import infrastructure.entities.PersonEntity
 import infrastructure.entities.PersonEntity.*
-import infrastructure.entities.person.Events.*
-import infrastructure.entities.person.Commands.*
-import infrastructure.entities.person.DataModel.*
 
 import services.Configs.*
 

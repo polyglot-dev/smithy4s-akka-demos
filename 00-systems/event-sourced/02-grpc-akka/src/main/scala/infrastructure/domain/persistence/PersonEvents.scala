@@ -2,8 +2,6 @@ package infrastructure
 package entities
 package person
 
-import java.util.Date
-
 object Events:
     import DataModel.*
 

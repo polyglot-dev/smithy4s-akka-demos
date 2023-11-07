@@ -39,12 +39,12 @@ lazy val commonSettings = Seq(
   scalacOptions ++=
     Seq(
       "-explain",
-      // "-Yexplicit-nulls",
       "-Ysafe-init",
-      // "-Wunused:all",
       "-deprecation",
       "-feature",
       "-Yretain-trees",
+      // "-Yexplicit-nulls",
+      // "-Wunused:all",
     )
   // ) ++ Seq("-new-syntax", "-rewrite")
   // ) ++ Seq("-rewrite", "-indent")

@@ -5,8 +5,6 @@ package transformers
 import io.scalaland.chimney.dsl.*
 import io.scalaland.chimney.Transformer
 
-import com.google.protobuf.ByteString
-
 object CommonTransformers:
 
     transparent inline given TransformerConfiguration[?] = TransformerConfiguration.default.enableDefaultValues

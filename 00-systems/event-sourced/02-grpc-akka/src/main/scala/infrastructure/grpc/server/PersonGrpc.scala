@@ -21,11 +21,11 @@ import akka.Done
 
 import ProtobufErrorsBuilder.*
 import transformers.CommonTransformers.given
-import transformers.PersonTransformers.given
+// import transformers.PersonTransformers.given
 
 import io.scalaland.chimney.dsl.*
-import io.scalaland.chimney.protobufs.*
-import io.scalaland.chimney.javacollections.*
+// import io.scalaland.chimney.protobufs.*
+// import io.scalaland.chimney.javacollections.*
 
 import java.util.UUID
 

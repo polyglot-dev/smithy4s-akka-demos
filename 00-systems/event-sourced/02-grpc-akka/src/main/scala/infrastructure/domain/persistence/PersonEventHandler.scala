@@ -1,10 +1,10 @@
 package infrastructure
 package entities
 
-import person.DataModel.*
-import person.Commands.*
+// import person.DataModel.*
+// import person.Commands.*
+// import util.*
 import person.Events.*
-import util.*
 
 trait PersonEventHandler:
     this: PersonEntity.State =>

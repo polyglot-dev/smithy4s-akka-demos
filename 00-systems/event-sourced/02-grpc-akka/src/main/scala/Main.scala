@@ -3,14 +3,17 @@ package main
 import infrastructure.services.*
 import Configs.*
 
-import akka.actor.typed.ActorSystem
 // import akka.actor.typed.{ ActorSystem as TypedActorSystem }
-import akka.actor.CoordinatedShutdown
+
+// import akka.actor.CoordinatedShutdown
+// import akka.Done
+// import scala.concurrent.Future
+// import akka.kafka.scaladsl.Consumer.DrainingControl
+// import akka.grpc.GrpcClientSettings
+
+import akka.actor.typed.ActorSystem
 import akka.actor.ActorSystem as UntypedActorSystem
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
-import akka.Done
-import scala.concurrent.duration.*
-import scala.concurrent.Future
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
@@ -30,8 +33,6 @@ import infrastructure.entities.PersonEntity
 
 import infrastructure.entities.person.projections.PersonProjection
 
-import akka.kafka.scaladsl.Consumer.DrainingControl
-
 import distage.Injector
 import distage.ModuleDef
 import distage.config.{ AppConfig, ConfigModuleDef }
@@ -42,8 +43,6 @@ import infrastructure.services.person.PersonService
 import infrastructure.services.PersonServiceImpl
 
 import infrastructure.grpc.GrpcApi
-
-import akka.grpc.GrpcClientSettings
 
 import akka.persistence.typed.PersistenceId
 import akka.management.cluster.bootstrap.ClusterBootstrap
@@ -68,6 +67,7 @@ object DIConfigs:
               .defaultApplication().getConfig("app").resolve()
           ))
 
+@annotation.nowarn("msg=unused explicit parameter")
 class DI(config: LocalConfig):
 
     val clusterModule =

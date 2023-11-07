@@ -2,8 +2,6 @@ package infrastructure
 package entities
 package person
 
-import java.util.Date
-
 object DataModel:
 
     sealed trait Model extends CborSerializable

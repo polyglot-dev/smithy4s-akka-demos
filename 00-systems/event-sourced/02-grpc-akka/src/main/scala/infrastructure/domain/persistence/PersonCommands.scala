@@ -4,8 +4,6 @@ package person
 
 import akka.actor.typed.ActorRef
 import akka.Done
-import java.util.Date
-import akka.pattern.StatusReply
 
 object Commands:
 

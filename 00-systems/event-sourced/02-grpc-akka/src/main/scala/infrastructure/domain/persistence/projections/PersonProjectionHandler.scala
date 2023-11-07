@@ -15,25 +15,23 @@ import akka.Done
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import org.slf4j.LoggerFactory
-import scala.util.{ Failure, Success, Try }
 import java.util.UUID
-import entities.PersonEntity
 
 import person.DataModel.*
 import infrastructure.entities.person.Events.PersonCreated
 import infrastructure.entities.person.Events.PersonUpdated
 import io.r2dbc.postgresql.codec.Json
 
-import io.circe.*, io.circe.generic.auto.*, io.circe.parser.*, io.circe.syntax.*
+import io.circe.*, io.circe.syntax.*, io.circe.parser.*, io.circe.generic.auto.*
 
 class PersonProjectionHandler()(using ec: ExecutionContext)
     extends R2dbcHandler[immutable.Seq[EventEnvelope[entities.person.Events.Event]]]:
     private val logger = LoggerFactory.getLogger(getClass)
 
     override def process(
-                      session: R2dbcSession,
-                      envelopes: immutable.Seq[EventEnvelope[entities.person.Events.Event]]): Future[Done] =
-        given R2dbcSession = session
+                        session: R2dbcSession,
+                        envelopes: immutable.Seq[EventEnvelope[entities.person.Events.Event]]): Future[Done] =
+        // given R2dbcSession = session
 
         val groups = envelopes.groupBy(_.persistenceId)
         val groupsIds =
@@ -66,9 +64,8 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
         val existingPersonsAsMap = existingPersonsTuples.map(_.map {
           case (id: UUID, name: String, town: Option[String], address: Option[Json]) =>
             val addressValue = address.map(
-              v => {
+              v =>
                 decode[Address](v.asString).toOption.get
-              }
             )
             (id, PersonEntity.State(name, town, addressValue))
         }
@@ -116,9 +113,7 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
                     logger.info(s"Updating projection for $uuidKey")
 
                     val addr = state.address.map(
-                      v => {
-                        Json.of(v.asJson.noSpaces)
-                      }
+                      v => Json.of(v.asJson.noSpaces)
                     )
 
                     if newEntities.contains(uuidKey) then
@@ -131,7 +126,6 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
                           .bind(1, state.name)
                           .bind(2, state.town.orNull)
                           .bind(3, addr.orNull)
-                        // .bind(3, state.address.orNull)
                     else
                         session
                           .createStatement("""

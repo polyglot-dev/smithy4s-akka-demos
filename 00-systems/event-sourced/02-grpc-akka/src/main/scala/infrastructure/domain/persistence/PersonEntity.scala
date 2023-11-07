@@ -4,7 +4,6 @@ package entities
 import services.Configs.*
 
 import akka.cluster.sharding.typed.scaladsl.EntityTypeKey
-import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.persistence.typed.scaladsl.EventSourcedBehavior
@@ -13,10 +12,6 @@ import akka.persistence.typed.PersistenceId
 import akka.persistence.typed.scaladsl.RetentionCriteria
 import akka.actor.typed.SupervisorStrategy
 import akka.persistence.typed.scaladsl.Effect
-import java.time.LocalDateTime
-
-import akka.actor.typed.scaladsl.ActorContext
-import akka.cluster.sharding.typed.scaladsl.EntityContext
 import akka.Done
 
 import util.person.EventsTags
@@ -33,21 +28,37 @@ object PersonEntity:
     type ReplyEffect = akka.persistence.typed.scaladsl.ReplyEffect[Event, Option[State]]
 
 // format: off
-    case class State(name: String, town: Option[String], address: Option[Address]) extends CborSerializable, 
-                                                                 PersonCommandHandler,
-                                                                 PersonEventHandler
+    case class State(
+      name: String, 
+      town: Option[String], 
+      address: Option[Address],
+    ) extends CborSerializable, 
+              PersonCommandHandler,
+              PersonEventHandler
 // format: on
 
     def onFirstCommand(cmd: Command): ReplyEffect =
       cmd match
         case CreatePersonCommand(person: Person, replyTo) =>
-          Effect.persist(PersonCreated(person.name, person.town, person.address)).thenReply(replyTo)(
+          Effect.persist(
+            PersonCreated(
+              person.name,
+              person.town,
+              person.address,
+            )
+          ).thenReply(replyTo)(
             _ => Done
           )
-        case default: Command                             =>
-          Effect.none.thenReply(default.replyTo)(
-            _ => ResultError(TransportError.NotFound, "Person do not exists")
-          )
+        case default                                      =>
+          Effect
+            .none
+            .thenReply(default.replyTo)(
+              _ =>
+                ResultError(
+                  TransportError.NotFound,
+                  "Person do not exists"
+                )
+            )
 
     def onFirstEvent(event: Event): State =
       event match
