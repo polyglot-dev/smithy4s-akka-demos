@@ -220,3 +220,41 @@ object App:
                   RootBehaviorMainNode(),
                   config.actorSystemName
                 )
+
+
+
+import io.circe.*, io.circe.syntax.*, io.circe.parser.*, io.circe.generic.auto.*
+import campaigns.infrastructure.grpc as proto
+
+import io.scalaland.chimney.dsl.*
+import io.scalaland.chimney.Transformer
+// import java.time.LocalDate
+// import com.google.protobuf.util.JsonFormat
+import scalapb.json4s.JsonFormat
+
+case class LocalDate(year: Int, month: Int, day: Int)
+object LocalDate:
+  def of(year: Int, month: Int, day: Int): LocalDate = LocalDate(year, month, day)
+  
+case class Duration(startDate: LocalDate, endDate: LocalDate)
+case class DurationReq(d: Duration)
+
+given protoDateToDate: Transformer[proto.Date, LocalDate] with
+    def transform(in: proto.Date): LocalDate = LocalDate.of(in.year, in.month, in.day)
+
+object AppY:
+
+    def main(args: Array[String]): Unit =
+      var res = JsonFormat.toJsonString(
+        proto.Duration(Some(proto.Date(2021, 1, 1)), Some(proto.Date(2021, 1, 1)))
+        )
+      var a = decode[Duration](res)
+      println(res)
+      println(a)
+      res = JsonFormat.toJsonString(
+        proto.Duration(Some(proto.Date(2021, 1, 1)), None)
+        )
+      a = decode[Duration](res)
+      println(res)
+      println(a)
+      // .transformInto[Duration]

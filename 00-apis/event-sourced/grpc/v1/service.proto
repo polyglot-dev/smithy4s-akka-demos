@@ -5,15 +5,24 @@ option java_package = "api.eventSourced.grpc";
 
 package api.eventSourced.grpc;
 
+import "scalapb/scalapb.proto";
+import "google/protobuf/wrappers.proto";
+
 message Address{
     string street = 1;
     int32 no = 2;
+}
+
+enum Status {
+   active = 0;
+   inactive = 1;
 }
 
 message CreatePersonRequest {
     string name = 1;
     string town = 2;
     Address address = 3;
+    Status status = 4;
 }
 
 message CreatePersonResponse {

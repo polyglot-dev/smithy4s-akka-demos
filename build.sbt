@@ -13,11 +13,12 @@ lazy val autoImportSettingsCommon = Seq(
   "scala.util.chaining",
   "scala.concurrent",
   "scala.concurrent.duration",
+  "scala.jdk.CollectionConverters",
+  "scala.jdk.FunctionConverters",
   "cats.implicits",
   "cats",
   "cats.effect",
-  "scala.jdk.CollectionConverters",
-  "scala.jdk.FunctionConverters",
+  "cats.effect.std",
 )
 
 lazy val autoImportSettingsFs2 =
@@ -43,6 +44,8 @@ lazy val commonSettings = Seq(
       "-deprecation",
       "-feature",
       "-Yretain-trees",
+      "-Xmax-inlines",
+      "50"
       // "-Yexplicit-nulls",
       // "-Wunused:all",
     )
@@ -274,7 +277,7 @@ generateSmithyFromOpenApi := {
     val dirContents = (shell :+ f"ls ${smithyFilesPath.value}/*.smithy").!! // .trim
 
     for (f <- dirContents.split("\n").toList) {
-      if ((shell :+ f"""bin/tools/postprocess.scala -f "${f}" """).! == 0) {
+      if ((shell :+ f"""postprocess.scala -f "${f}" """).! == 0) {
         s.log.success(s"Smithy postprocess successful for ${f}")
       } else
         throw new IllegalStateException(s"Smithy postprocess failed for ${f}")
@@ -291,6 +294,7 @@ lazy val crudHttpService = project
   .in(file("00-systems/cruds/02-http-service-crud"))
   .enablePlugins(JavaAppPackaging)
   .dependsOn(rest_crud)
+  .dependsOn(avro_crud)
   .settings(commonSettings)
   .settings(
     scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
@@ -303,7 +307,21 @@ lazy val crudHttpService = project
     Universal / packageName := name.value,
     Compile / mainClass := Some("main.App"),
     Compile / discoveredMainClasses := Seq(),
-    libraryDependencies ++= Cruds.httpServiceDependencies,
+    libraryDependencies ++= Cruds.httpServiceDependencies ++ Seq(
+      "com.github.fd4s" %% "fs2-kafka" % "3.2.0",
+    ),
+  )
+
+lazy val avro_crud = project
+  .in(file("00-systems/cruds/01-avro-crud"))
+  .dependsOn(api_rest_avro_artifact)
+  .settings(commonSettings)
+  .settings(
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    name := "api-avro-kafka",
+    libraryDependencies ++= KafkaSupportLibs.interfaceLibsDependencies,
   )
 
 lazy val rest_crud = project
@@ -316,6 +334,19 @@ lazy val rest_crud = project
     ),
     name := "api-rest",
     libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
+  )
+
+lazy val api_rest_avro_artifact = project
+  .in(file("artifacts/cruds/00-api-kafka"))
+  .settings(commonSettings)
+  .settings(
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    organization := "com.demos.kafka",
+    name := "api-avro",
+    Compile / avroSource := (Compile / baseDirectory).value / ".." / ".." / ".." / "00-apis" / "integration" / "cruds" / "00-api-kafka-to-publish" / "avro",
+    libraryDependencies ++= KafkaSupportLibs.interfaceLibsDependencies,
   )
 
 // END ==== REST CRUD demo
@@ -374,7 +405,10 @@ lazy val eventSourcedGrpcService = project
   .settings(commonSettings)
   .settings(
     Seq(
-      libraryDependencies ++= Akka.grpcAkkaDependencies,
+      libraryDependencies ++= Akka.grpcAkkaDependencies ++ Seq(
+        //  "com.google.protobuf" % "protobuf-java-util" % "3.25.0",
+        "com.thesamet.scalapb" %% "scalapb-json4s" % "0.12.0",
+      ),
     )
   )
 

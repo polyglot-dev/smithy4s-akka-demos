@@ -1,0 +1,25 @@
+meta {
+  name: create person 2
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://0.0.0.0:9006/advertisers
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "xtttxeui",
+    "town": "Madrid",
+    "address": {
+      "fullAddress": {
+      "name": "calle C",
+      "n": 3,
+       "country": "ES"
+      }
+    }
+  }
+}

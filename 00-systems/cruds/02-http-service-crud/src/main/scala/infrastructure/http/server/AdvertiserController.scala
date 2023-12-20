@@ -11,9 +11,12 @@ import cats.data.EitherT
 
 import types.*
 
+import fs2.kafka.*
+
 trait AdvertiserHttpController(
                             service: AdvertiserService[Result],
-                            logger: Option[IzLogger]):
+                            logger: Option[IzLogger],
+                            ):
 
     def updateAdvertiserBasicInformation(id: Int, body: Option[PersonInfo])
         : Result[UpdateAdvertiserBasicInformation200] =
@@ -25,10 +28,15 @@ trait AdvertiserHttpController(
 
     def createAdvertiser(body: Option[Person]): Result[CreateAdvertiser201] =
         logger.foreach(_.error(s"createAdvertiser: $body"))
-        service.createPerson(body.get).map(
-          id =>
-            CreateAdvertiser201(AdvertiserBodyResponse(Some(id.toString())))
-        )
+        service.createPerson(body.get)
+          .map(
+            id =>
+              id
+          )
+          .map(
+            id =>
+              CreateAdvertiser201(AdvertiserBodyResponse(Some(id.toString())))
+          )
 
     def getAdvertiserById(id: String): Result[GetAdvertiserById200] = service.getPersonById(id).map(
       p => GetAdvertiserById200(p)
@@ -38,5 +46,4 @@ trait AdvertiserHttpController(
         logger.foreach(_.error(s"updateAdvertiserCategory: $body"))
         EitherT(IO.pure(Right(UpdateAdvertiserCategory200(Advertiser(Some("cosa"))))))
 
-    def setStatus(body: Option[Status]): Result[SetStatus200] = 
-      EitherT(IO.pure(Right(SetStatus200(Status.created))))
+    def setStatus(body: Option[Status]): Result[SetStatus200] = EitherT(IO.pure(Right(SetStatus200(Status.created))))

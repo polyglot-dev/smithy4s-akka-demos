@@ -65,9 +65,9 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
           case (id: UUID, name: String, town: Option[String], address: Option[Json]) =>
             val addressValue = address.map(
               v =>
-                decode[Address](v.asString).toOption.get
+                decode[Address](v.asString).toOption
             )
-            (id, PersonEntity.State(name, town, addressValue))
+            (id, PersonEntity.State(name, town, addressValue.flatten))
         }
           .groupBy(_._1)).map:
             case hmap =>

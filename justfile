@@ -2,7 +2,7 @@ set shell := ["sh", "-c"]
 set allow-duplicate-recipes
 set positional-arguments
 set dotenv-path := ".local/.env"
-# set dotenv-load := true
+set dotenv-load := true
 set export
 
 postgres_sql_file := justfile_directory() + "/docker/postgres/docker-entrypoint-initdb.d/postgres.sql"
@@ -96,7 +96,7 @@ clean-docker-compose-data:
   chmod -R 777 docker/data
 
 crud:
-  sbt -Dactive-app=crud-http
+  sbt -Dactive-app=crud-rest
 
 tracing-http:
   sbt -Dactive-app=tracing-http
@@ -121,4 +121,73 @@ event-sourced-grpc:
   sbt -Dactive-app=event-sourced-grpc -Dconfig.file=00-systems/event-sourced/02-grpc-akka/src/main/resources/application-dev.conf
 
 basic:
-  sbt -Dactive-app=basic
+  sbt -Dactive-app=basic-rest
+
+
+crud-gen-avsc:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  
+  allAvdls="$AVRO_IDLS_SOURCE/*.avdl"
+  for file in $allAvdls; do
+    dfile=$(basename $file)
+    dfile=${dfile%?????}
+    destination="$AVRO_SCHEMAS_BASE_PATH/$dfile"
+    mkdir -p $destination
+    avro-tools idl2schemata \
+        $file \
+        $destination
+    load-schemas-to-registry.scala --schema-subject $dfile --path-of-schemas $destination
+  done
+
+keystore_file := justfile_directory() + "00-systems/smithy-basic/02-http-service-basic/src/main/resources/server.jks"
+
+gen-keystore:
+  mkcert -pkcs12 -p12-file example.com.p12 example.com '*.example.com'
+  rm {{keystore_file}} || true
+
+  keytool -importkeystore \
+          -deststorepass changeit \
+          -destkeypass changeit \
+          -deststoretype pkcs12 \
+          -srckeystore example.com.p12 \
+          -srcstoretype PKCS12 \
+          -srcstorepass changeit \
+          -destkeystore 00-systems/smithy-basic/02-http-service-basic/src/main/resources/server.jks
+
+  rm example.com.p12
+
+rm-keystore:
+  rm {{keystore_file}} || true
+
+show:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+
+  export DENV=2
+  direnv reload
+  echo $AKKA_CLUSTER_APP_PORT
+
+generate-avros:
+  rm -Rf 00-apis/integration/cruds/00-api-kafka-to-publish/avro
+  mkdir -p 00-apis/integration/cruds/00-api-kafka-to-publish/avro
+  avro-tools idl2schemata 00-apis/integration/cruds/00-api-kafka/avro/Advertiser.avdl 00-apis/integration/cruds/00-api-kafka-to-publish/avro
+
+# https://www.freecodecamp.org/news/sort-dictionary-by-value-in-python/#howtosortadictionarywiththesortedmethod
+clean-avros: generate-avros
+  #!/usr/bin/env python
+
+  import json
+  import glob
+  import os
+
+  for filename in glob.glob('00-apis/integration/cruds/00-api-kafka-to-publish/avro/*.avsc'):
+    with open(filename, "r+") as f, open(filename + "_", "w") as f2:
+      data = json.load(f)
+      if 'fields' in data.keys():
+        for a in data['fields']:
+          if isinstance(a['type'], dict):
+            a['type'] = a['type']['name']
+      f2.write(json.dumps(data, indent=2))
+    os.remove(filename)
+    os.rename(filename + "_", filename)

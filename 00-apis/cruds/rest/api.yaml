@@ -1,4 +1,6 @@
 openapi: 3.0.0
+servers:
+  - url: https://0.0.0.0:9006/v1
 info:
   title: API REST management
   description: This is the REST API 
@@ -528,9 +530,17 @@ components:
           description: The town
           type: string
         address:
-          $ref: "#/components/schemas/Address"
+          $ref: "#/components/schemas/AddressTypes"
+
+    AddressTypes:
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+        fullAddress:
+          $ref: '#/components/schemas/FullAddress'
+          
     Address:
-      description: Representation of Address
       type: object
       properties:
         name:
@@ -539,6 +549,19 @@ components:
         n:
           description: The number
           type: integer
+    FullAddress:
+      type: object
+      properties:
+        name:
+          description: The name
+          type: string
+        n:
+          description: The number
+          type: integer
+        country:
+          description: The country
+          type: string
+            
     StringResponse:
       description: general response
       type: object

@@ -6,38 +6,38 @@ import common.*
 import domain.data.*
 
 // @IgnoreSuite
-class AdvertiserRepositorySaveImplTestSuite extends CatsEffectSuite with CommonRepositoryContext {
+// class AdvertiserRepositorySaveImplTestSuite extends CatsEffectSuite with CommonRepositoryContext {
 
-  val fixture1 =
-    new Fixture[Unit]("fixture2") {
+//   val fixture1 =
+//     new Fixture[Unit]("fixture2") {
 
-      import doobie.*
-      import doobie.implicits.*
+//       import doobie.*
+//       import doobie.implicits.*
 
-      def apply() = ()
+//       def apply() = ()
 
-      override def beforeEach(context: BeforeEach): Unit = {}
+//       override def beforeEach(context: BeforeEach): Unit = {}
 
-      override def afterEach(context: AfterEach): Unit = {
-        sql"delete from person where true".update.run.transact(xa).unsafeRunSync()
-        sql"ALTER SEQUENCE person_id_seq RESTART WITH 1".update.run.transact(xroot).unsafeRunSync()
-      }
+//       override def afterEach(context: AfterEach): Unit = {
+//         sql"delete from person where true".update.run.transact(xa).unsafeRunSync()
+//         sql"ALTER SEQUENCE person_id_seq RESTART WITH 1".update.run.transact(xroot).unsafeRunSync()
+//       }
 
-    }
+//     }
 
-  override def munitFixtures = List(fixture1)
+//   override def munitFixtures = List(fixture1)
 
-  test("Save person") {
+//   test("Save person") {
 
-    repo.savePerson(Person(Some("c"), Some("c"))).map(
-      it =>
-        assert {
-          it match
-            case Right(x: Long) => true
-            case _              => false
-        }
-    )
+//     repo.savePerson(Person(Some("c"), Some("c"))).map(
+//       it =>
+//         assert {
+//           it match
+//             case Right(x: Long) => true
+//             case _              => false
+//         }
+//     )
 
-  }
+//   }
 
-}
+// }

@@ -43,3 +43,4 @@ notes*.txt
 *deps.txt
 
 00-systems/cruds/01-api-rest-crud/src/main/smithy/
+00-apis/integration/cruds/00-api-kafka-to-publish/avro/

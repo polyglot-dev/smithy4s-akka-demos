@@ -14,9 +14,12 @@ import domain.data.Advertiser as AdvertiserDTO
 import domain.data.Campaign as CampaignDTO
 
 // import io.github.arainko.ducktape.*
-import io.github.arainko.ducktape.to as duckTapeTo
-import io.github.arainko.ducktape.into as duckTapeInto
-import io.github.arainko.ducktape.Field
+// import io.github.arainko.ducktape.to as duckTapeTo
+// import io.github.arainko.ducktape.into as duckTapeInto
+import _root_.io.scalaland.chimney.dsl.*
+import _root_.io.scalaland.chimney.Transformer
+
+// import io.github.arainko.ducktape.Field
 
 import doobie.util.fragment.Fragment
 
@@ -174,7 +177,7 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
                  getPersonById(id)
                    .map {
                      case Left(value)  => Left(value)
-                     case Right(value) => Right(value.map(_.duckTapeTo[PersonInfo]))
+                     case Right(value) => Right(value.map(_.transformInto[PersonInfo]))
                    }
              )
     } yield res
@@ -222,13 +225,14 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
         advertiser =>
             val campaigns: List[Campaign] = campaignsMap.getOrElse(advertiser.id, List.empty)
             advertiser
-              .duckTapeInto[AdvertiserDTO]
-              .transform(Field.computed(ad => ad.campaigns,
+              .into[AdvertiserDTO]
+              .withFieldComputed(ad => ad.campaigns,
                                         _ =>
                                           campaigns.map(
-                                            campaign => campaign.duckTapeTo[CampaignDTO]
+                                            campaign => campaign.transformInto[CampaignDTO]
                                           )
-                                       ))
+)
+              .transform
       }
     }
 

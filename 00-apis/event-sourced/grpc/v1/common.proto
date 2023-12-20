@@ -5,49 +5,69 @@ option java_package = "api.common";
 
 package api.common;
 
+import "scalapb/scalapb.proto";
+import "google/protobuf/wrappers.proto";
+
+option (scalapb.options) = {
+  scope: FILE
+  flat_package: true
+  single_file: true
+  java_conversions: false
+  preamble: "sealed trait BaseMessage extends Throwable"
+  scala3_sources: true
+};
+
 message BadRequestError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message NotFoundError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message InternalServerError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message ServiceUnavailableError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message UnauthorizedError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message ForbiddenError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message ConflictError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;
 }
 
 message RequestTimeoutError{
+    option (scalapb.message).extends = "BaseMessage";
     string code = 1;
     string title = 2;
     string description = 3;

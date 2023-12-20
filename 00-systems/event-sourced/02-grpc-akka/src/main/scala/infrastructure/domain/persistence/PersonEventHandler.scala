@@ -6,11 +6,20 @@ package entities
 // import util.*
 import person.Events.*
 
+def getIfNotNone[A](a: Option[A], b: Option[A]): Option[A] =
+  a match
+    case None => b
+    case _    => a
+
 trait PersonEventHandler:
     this: PersonEntity.State =>
 
     def applyEvent(event: Event): PersonEntity.State =
       event match
-        case PersonUpdated(Some(n), t, a) => copy(n, t, a)
-        case PersonUpdated(None, t, a)    => copy(town = t, address = a)
-        case PersonCreated(_, _, _)       => throw new IllegalStateException(s"unexpected event [$event] in active state")
+        case PersonUpdated(n, t, a) =>
+          copy(
+            name = n.getOrElse(name),
+            town = getIfNotNone(t, town),
+            address = getIfNotNone(a, address)
+          )
+        case PersonCreated(_, _, _) => throw new IllegalStateException(s"unexpected event [$event] in active state")

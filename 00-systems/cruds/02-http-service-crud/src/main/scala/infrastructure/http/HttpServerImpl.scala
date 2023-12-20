@@ -10,8 +10,6 @@ import types.*
 
 class HttpServerImpl(
                     service: AdvertiserService[Result],
-                    logger: Option[IzLogger])
-    extends ApiService[Result], server.AdvertiserHttpController(service, logger) {
-
-
-}
+                    logger: Option[IzLogger],
+                    )
+    extends ApiService[Result], server.AdvertiserHttpController(service, logger) {}

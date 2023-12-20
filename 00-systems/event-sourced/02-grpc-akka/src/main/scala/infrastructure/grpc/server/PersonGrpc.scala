@@ -21,10 +21,10 @@ import akka.Done
 
 import ProtobufErrorsBuilder.*
 import transformers.CommonTransformers.given
-// import transformers.PersonTransformers.given
+import transformers.PersonTransformers.given
 
 import io.scalaland.chimney.dsl.*
-// import io.scalaland.chimney.protobufs.*
+import io.scalaland.chimney.protobufs.*
 // import io.scalaland.chimney.javacollections.*
 
 import java.util.UUID
@@ -32,7 +32,7 @@ import java.util.UUID
 trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecutor):
     this: CommonGrpc =>
 
-    def createPerson(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
+    def createPersonX(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
         val id = UUID.randomUUID().toString
         personService.createPerson(id, in.transformInto[Person]).transform:
             case Success(value) =>
@@ -45,6 +45,10 @@ trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecuto
               Failure(
                 GrpcServiceException(Code.INTERNAL, "Internal error", Seq(error))
               )
+    def createPerson(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
+        val id = UUID.randomUUID().toString
+        logger.error(s"createPerson: $id")
+        Future{CreatePersonResponse(id)}
 
     def updatePerson(in: UpdatePersonRequest, metadata: Metadata): Future[GetPersonResponse] =
       personService.updatePerson(in.id, in.transformInto[PersonUpdate]).transform:

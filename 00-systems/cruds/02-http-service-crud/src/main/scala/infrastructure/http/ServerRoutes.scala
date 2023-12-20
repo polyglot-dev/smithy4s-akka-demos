@@ -27,7 +27,7 @@ import logstage.IzLogger
 
 import types.*
 
-import io.github.arainko.ducktape.*
+// import io.github.arainko.ducktape.*
 
 // import software.amazon.awssdk.crt.Log
 
@@ -50,50 +50,57 @@ object Converter:
 
 class ServerRoutes(
                 service: AdvertiserService[Result],
-                logger: Option[IzLogger]):
+                logger: Option[IzLogger],
+                ):
 
-    def translateMessage(message: String): String ={
-      
+    def translateMessage(message: String): String = {
+
       logger.foreach(_.error(s"MESSAGE: >>>> $message"))
 
       val i = message.indexOf(", offset:")
-      if (i == -1) message else message.substring(0, i)
+      if (i == -1)
+        message
+      else
+        message.substring(0, i)
     }
 
     private val mainRoutes: Resource[IO, HttpRoutes[IO]] =
-      SimpleRestJsonBuilder.routes(HttpServerImpl(service, logger).transform(Converter.toIO))
-        .mapErrors {
-          case e@HttpPayloadError(_, expected, message) =>
-              // Throwable
-            // val cls = e.getClass().getCanonicalName()
-            // logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
-            ErrorsBuilder.badRequestError(s"Related to $expected, comment: ${translateMessage(message)}")
-            .into[smError.BadRequestError]
-              .transform(Field.renamed(_.description, _.message))
+      SimpleRestJsonBuilder.routes(HttpServerImpl(
+        service,
+        logger,
+      ).transform(Converter.toIO))
+        // .mapErrors {
+        //   case e @ HttpPayloadError(_, expected, message) =>
+        //     // Throwable
+        //     // val cls = e.getClass().getCanonicalName()
+        //     // logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
+        //     ErrorsBuilder.badRequestError(s"Related to $expected, comment: ${translateMessage(message)}")
+        //       .into[smError.BadRequestError]
+        //       .transform(Field.renamed(_.description, _.message))
 
-          case e: ServiceUnavailable =>
-            // e.printStackTrace()
-            e.into[smError.ServiceUnavailableError]
-              .transform(Field.renamed(_.description, _.message))
+        //   case e: ServiceUnavailable =>
+        //     // e.printStackTrace()
+        //     e.into[smError.ServiceUnavailableError]
+        //       .transform(Field.renamed(_.description, _.message))
 
-          case e: Conflict   =>
-            e.into[smError.ConflictError]
-              .transform(Field.renamed(_.description, _.message))
-          case e: BadRequest =>
-            e.into[smError.BadRequestError]
-              .transform(Field.renamed(_.description, _.message))
-          case e: NotFound   =>
-            e.into[smError.NotFoundError]
-              .transform(Field.renamed(_.description, _.message))
+        //   case e: Conflict   =>
+        //     e.into[smError.ConflictError]
+        //       .transform(Field.renamed(_.description, _.message))
+        //   case e: BadRequest =>
+        //     e.into[smError.BadRequestError]
+        //       .transform(Field.renamed(_.description, _.message))
+        //   case e: NotFound   =>
+        //     e.into[smError.NotFoundError]
+        //       .transform(Field.renamed(_.description, _.message))
 
-          case e: Throwable =>
-              // Throwable
-            val cls = e.getClass().getCanonicalName()
-            logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
-            ErrorsBuilder.serviceUnavailableError(e.getMessage())
-            .into[smError.InternalServerError]
-              .transform(Field.renamed(_.description, _.message))
-        }
+        //   case e: Throwable =>
+        //     // Throwable
+        //     val cls = e.getClass().getCanonicalName()
+        //     logger.foreach(_.error(s"TYPE: >>>> $cls \n $e"))
+        //     ErrorsBuilder.serviceUnavailableError(e.getMessage())
+        //       .into[smError.InternalServerError]
+        //       .transform(Field.renamed(_.description, _.message))
+        // }
         .resource
 
     private val healthCheck: HttpRoutes[IO] = HttpRoutes.of[IO]:

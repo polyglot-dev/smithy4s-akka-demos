@@ -5,7 +5,11 @@ package services
 import logstage.IzLogger
 import domain.types.*
 import types.*
-import io.github.arainko.ducktape.*
+// import io.github.arainko.ducktape.*
+
+import _root_.io.scalaland.chimney.dsl.*
+import _root_.io.scalaland.chimney.Transformer
+import io.scalaland.chimney.partial
 
 import _root_.infrastructure.internal.*
 
@@ -14,13 +18,20 @@ import ErrorsBuilder.*
 import cats.data.EitherT
 import scala.util.{ Failure, Success, Try }
 import TypesConversion.*
+import infrastructure.resources.Handle
+import infrastructure.*
+
+
+import infrastructure.http.transformers.AdvertisersTransformers.given
+import integration.serializers.*
 
 class AdvertiserServiceImpl(
                            repo: AdvertiserRepository[IO],
+                           handler: Option[Handler[Dtos.Advertiser]] = None,
                            logger: Option[IzLogger] = None) extends AdvertiserService[Result] {
 
   def getPersonById(id: String): Result[Person] = {
-
+    
     logger.foreach(_.info(s"Service, getting data from name: '$id'"))
 
     def validatePreconditions: Either[ServiceError, Tuple1[Long]] = {
@@ -37,7 +48,21 @@ class AdvertiserServiceImpl(
             repositoryResult <- repo.getPersonById(okId)
           yield {
             repositoryResult match
-              case Right(Some(person)) => Right(person.to[Person])
+              case Right(Some(person)) => 
+                
+                // Right(person.transformInto[Person])
+
+                person.transformIntoPartial[Person].asEither match
+                  case Left(value) =>
+                    val msg = value.errors.map(
+                      (er: partial.Error) => er._1.asString
+                    ).mkString(",")
+                    Left(badRequestError(msg))
+                      // .toResult
+
+                  case Right(value) =>
+                    Right(value)
+                
               case Right(None)         => Left(notFoundError(f"Data with id: ${id} missing"))
 
               case Left(ex) => Left(serviceUnavailableError("Error accessing data"))
@@ -64,7 +89,20 @@ class AdvertiserServiceImpl(
           yield {
             repositoryResult match
               case Right(None)    => Left(notFoundError(f"Data with id: ${id} missing"))
-              case Right(Some(p)) => Right(p.to[Person])
+              case Right(Some(p)) => 
+                
+                // Right(p.transformInto[Person])
+
+                p.transformIntoPartial[Person].asEither match
+                  case Left(value) =>
+                    val msg = value.errors.map(
+                      (er: partial.Error) => er._1.asString
+                    ).mkString(",")
+                    Left(badRequestError(msg))
+
+                  case Right(value) =>
+                    Right(value)
+                
               case Left(ex)       =>
                 if ex.getMessage contains "duplicate key value" then
                     Left(conflictError(s"Advertiser with name: ${body.name.get} already exists"))
@@ -77,6 +115,8 @@ class AdvertiserServiceImpl(
       }
     ).toResult
   }
+
+  import cats.effect.unsafe.implicits.global
 
   def createPerson(body: Person): Result[Long] = {
     logger.foreach(_.info(s"Service, creating advertiser: '$body'"))
@@ -92,11 +132,19 @@ class AdvertiserServiceImpl(
       {
         case Tuple1[domain.data.Person](person) =>
           for
-            repositoryResult <- repo.savePerson(person)
+              repositoryResult <- repo.savePerson(person)
+              // IO[Either[Throwable, Long]]
+              // repositoryResult <- IO[Either[Throwable, Long]]{Right(2L)}
           yield {
             repositoryResult match
-              case Right(id) => Right(id)
-              case Left(ex)  =>
+              case Right(id) =>
+                // TODO: Report the ID of the created resource via Fafka
+                // logger.foreach(_.info(s"About to offer: '$id'"))
+                logger.foreach(_.info(s"person saved: '$person'"))
+                // handler.queue.map(_.send(Dtos.Advertiser(id, Dtos.Status.ACTIVE)).unsafeRunAndForget())
+                Right(id)
+
+              case Left(ex) =>
                 if ex.getMessage contains "duplicate key value" then
                     Left(conflictError(s"Advertiser with name: ${body.name} already exists"))
                 else

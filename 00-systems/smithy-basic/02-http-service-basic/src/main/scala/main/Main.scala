@@ -39,20 +39,29 @@ object DI:
                   StaticLogRouter.instance.setup(res.router)
                   res
 
+          
+          make[SSLResource[IO]]
+          
           make[HttpServerResource].from:
               (
                 config: HttpServerConfig,
                 logger: IzLogger,
+                ssl: SSLResource[IO],
                 ) =>
                   given HttpServerConfig = config
-                  HttpServerResource(logger)
+                  HttpServerResource(ssl.resource, logger)
 
 object App extends IOApp:
 
     def run(args: List[String]): IO[ExitCode] =
         import DI.*
 
-        Injector[IO]().produceRun(mainModule ++ configModule):
+        val ioModule =
+          new ModuleDef:
+            make[fs2.io.net.Network[IO]].from:
+              summon[fs2.io.net.Network[IO]]
+            
+        Injector[IO]().produceRun(ioModule ++ mainModule ++ configModule):
             (
               httpServer: HttpServerResource) =>
 

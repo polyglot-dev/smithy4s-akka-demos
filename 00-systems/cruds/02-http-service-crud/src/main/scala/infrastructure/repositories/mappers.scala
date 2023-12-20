@@ -4,20 +4,24 @@ package mappers
 
 import doobie.*
 
-import domain.data.Address
+import domain.data.*
 
-import io.circe.Encoder
-import io.circe.Decoder
 import io.circe.generic.semiauto.*
 import doobie.postgres.circe.json.implicits.*
 
+import io.circe.{ Decoder, Encoder }
+import io.circe.Codec
+import io.circe.Decoder
+import io.circe.derivation.Configuration
+
 object AdvertisersMappers {
-  given addressEncoder: Encoder[Address] = deriveEncoder[Address]
-  given addressDecoder: Decoder[Address] = deriveDecoder[Address]
 
-  given pgAddressDecoderGet: Get[Address] = pgDecoderGetT[Address]
-  given pgAddressEncoderPut: Put[Address] = pgEncoderPutT[Address]
+  given Configuration = Configuration.default.withDiscriminator("type")
+  given Codec[AddressTypes] = Codec.AsObject.derivedConfigured                          
 
-  given addressMeta: Meta[Address] = new Meta(pgAddressDecoderGet, pgAddressEncoderPut)
+  given pgAddressDecoderGet: Get[AddressTypes] = pgDecoderGetT[AddressTypes]
+  given pgAddressEncoderPut: Put[AddressTypes] = pgEncoderPutT[AddressTypes]
+
+  given addressMeta: Meta[AddressTypes] = new Meta(pgAddressDecoderGet, pgAddressEncoderPut)
 
 }

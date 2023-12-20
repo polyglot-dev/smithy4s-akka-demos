@@ -6,6 +6,7 @@ object Dependencies {
   object V {
     val cats                 = "2.10.0"
     val catsEffect           = "3.5.2"
+    val fs2                  = "3.9.3"
     val logback              = "1.4.11"
     val postgress            = "42.6.0"
     val akka                 = "2.9.0"
@@ -30,11 +31,17 @@ object Dependencies {
     val scalatest            = "3.2.17"
     val chimney              = "0.8.2"
     val avro4s               = "5.0.6"
+    val vulcan               = "1.9.0"
+    val avroCompiler         = "1.11.3"
   }
 
   object Libraries {
     val cats                       = "org.typelevel"        %% "cats-core"                      % V.cats
     val catsEffect                 = "org.typelevel"        %% "cats-effect"                    % V.catsEffect
+    val fs2Core                    = "co.fs2"               %% "fs2-core"                       % V.fs2
+    val fs2Scodec                  = "co.fs2"               %% "fs2-scodec"                     % V.fs2
+    val fs2IO                      = "co.fs2"               %% "fs2-io"                         % V.fs2
+    val fs2ReactiveStreams         = "co.fs2"               %% "fs2-reactive-streams"           % V.fs2
 
     val akkaActor                  = "com.typesafe.akka"    %% "akka-actor-typed"               % V.akka
     val akkaCluster                = "com.typesafe.akka"    %% "akka-cluster-typed"             % V.akka
@@ -64,7 +71,8 @@ object Dependencies {
     val kafka                      = "com.typesafe.akka"    %% "akka-stream-kafka"              % V.kafka
     val fs2Kafka                   = "com.github.fd4s"      %% "fs2-kafka"                      % V.fs2Kafka
     val avro4s                     = "com.sksamuel.avro4s"  %% "avro4s-core"                    % V.avro4s
-   
+    val vulcan                     = "com.github.fd4s"      %% "vulcan"                         % V.vulcan
+    val avroCompiler               = "org.apache.avro"      %  "avro"                           % V.avroCompiler
     val postgresql                 = "org.postgresql"       %  "postgresql"                     % V.postgress
 
     val logback                    = "ch.qos.logback"       %  "logback-classic"                % V.logback
@@ -140,8 +148,9 @@ object Dependencies {
   object Akka{
 
     val grpcAkkaDependencies = Seq(
-        // Libraries.ducktape,
         Libraries.chimney,
+        Libraries.cats,
+        Libraries.catsEffect,
         Libraries.chimneyProtobufs,
         Libraries.chimneyJavaCollections,
         Libraries.akkaCluster,
@@ -202,7 +211,9 @@ object Dependencies {
       Libraries.izumiLogstageSinkSlf4j,
       Libraries.cats,
       Libraries.catsEffect,
-      Libraries.ducktape,
+      Libraries.fs2Core,
+      Libraries.fs2IO,
+      // Libraries.ducktape,
       Libraries.chimney,
       Libraries.http4s,
       Libraries.munitCatsEffect,
@@ -216,9 +227,21 @@ object Dependencies {
   }
 
   object SmithyLibs{
+
     val interfaceLibsDependencies = Seq(
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s"        % "0.18.3",
       "com.disneystreaming.smithy"    % "smithytranslate-traits" % "0.3.14",
+    )
+
+  }
+  
+  object KafkaSupportLibs{
+    
+    val interfaceLibsDependencies = Seq(
+      Libraries.avroCompiler,
+      Libraries.chimney,
+      Libraries.chimneyProtobufs,
+      Libraries.chimneyJavaCollections,
     )
   }
   
@@ -234,8 +257,14 @@ object Dependencies {
       Libraries.izumiLogstageCirce,
       Libraries.izumiDistageExtension,
       Libraries.izumiLogstageSinkSlf4j,
+      
       Libraries.cats,
       Libraries.catsEffect,
+      Libraries.fs2Core,
+      Libraries.fs2IO,
+      Libraries.fs2ReactiveStreams,
+      Libraries.fs2Scodec,
+      
       Libraries.ducktape,
       Libraries.chimney,
       Libraries.http4s,

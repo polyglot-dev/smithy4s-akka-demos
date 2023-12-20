@@ -34,7 +34,7 @@ object ErrorsBuilder:
     def badRequestError(message: String): BadRequest = BadRequest("LOYA400", "bad-request", message)
 
     def notFoundError(message: String): NotFound = NotFound("LOYA404", "not-found", message)
-    
+
     def internalServerError(message: String): InternalServer = InternalServer("LOYA500", "internal-error", message)
 
     def unauthorizedError(message: String): Unauthorized = Unauthorized("LOYA401", "unauthorized", message)

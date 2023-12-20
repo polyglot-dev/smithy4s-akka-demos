@@ -9,4 +9,4 @@
 #-Dcats.effect.tracing.exceptions.enhanced=true
 #-Dactive-app=crud
 #-Dactive-app=basic
--Dactive-app=event-sourced-grpc
+#-Dactive-app=event-sourced-grpc

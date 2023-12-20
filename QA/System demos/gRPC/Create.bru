@@ -1,0 +1,11 @@
+meta {
+  name: Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://127.0.0.1:9080/api.eventSourced.grpc.HomeService/CreatePerson
+  body: json
+  auth: none
+}

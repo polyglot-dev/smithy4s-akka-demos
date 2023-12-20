@@ -1,12 +1,17 @@
 $version: "2.0"
 
+metadata smithy4sErrorsAsScala3Unions = true
+metadata smithy4sWildcardArgument = "?"
+
 namespace smithy4s.hello
 
 use alloy#simpleRestJson
+use smithy4s.meta#generateServiceProduct
 
 use smithytranslate#contentType
 
 @simpleRestJson
+@generateServiceProduct
 service HelloWorldService {
   version: "1.0.0",
   operations: [
@@ -15,7 +20,7 @@ service HelloWorldService {
 }
 
 @http(method: "POST", uri: "/person/{name}", code: 200)
-operation Hello {
+operation Hello{
   input: Person,
   output: Greeting
   errors: [

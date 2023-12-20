@@ -33,7 +33,8 @@ class PersonServiceImpl(personSharding: PersonSharding)
     given timeout: Timeout = config.requestToActorsTimeout
     // private val logger = LoggerFactory.getLogger(getClass)
 
-    def createPerson(id: String, data: Person): Future[Done | ResultError] = personSharding
+    def createPerson(id: String, data: Person): Future[Done | ResultError] = 
+      personSharding
       .entityRefFor(PersonEntity.typeKey, id)
       .ask(PersonEntity.CreatePersonCommand(data, _))
       .mapTo[Done | ResultError]
@@ -52,7 +53,8 @@ class PersonServiceImpl(personSharding: PersonSharding)
             case e: ResultError => Future { e }
           }
 
-    def getPerson(id: String): Future[Person | ResultError] = personSharding
+    def getPerson(id: String): Future[Person | ResultError] = 
+      personSharding
       .entityRefFor(PersonEntity.typeKey, id)
       .ask(PersonEntity.GetPersonCommand(_))
       .mapTo[Person | ResultError]

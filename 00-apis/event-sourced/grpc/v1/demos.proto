@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "campaigns.infrastructure.grpc";
+
+package campaigns.infrastructure.grpc;
+
+import "scalapb/scalapb.proto";
+import "google/protobuf/wrappers.proto";
+
+// import "com/zenith/loyalty/infrastructure/internal/common.proto";
+
+message Date {
+  int32 year = 1;
+  int32 month = 2;
+  int32 day = 3;
+}
+
+message CampaignCreateRequest {
+  string advertiserId = 1;
+  string name = 2;
+  Budget budget = 3;
+  Duration duration = 4;
+  Status status = 5;
+}
+
+message CampaignCreateResponse {
+  string id = 1;
+}
+
+message CampaignGetRequest {
+  string id = 1;
+}
+
+message CampaignUpdateRequest {
+  string id = 1;
+  CampaignUpdate payload = 2;
+}
+
+message CampaignUpdate {
+  google.protobuf.StringValue name = 1;
+  Budget budget = 2;
+  Duration duration = 3;
+  Status status = 4;
+}
+
+message Campaign {
+  string id = 1;
+  string advertiserId = 2;
+  string name = 3;
+  Budget budget = 4;
+  Duration duration = 5;
+  Status status = 6;
+}
+
+message Budget {
+  string currency = 1;
+  string totalBudget = 2;
+  string totalSpent = 3;
+}
+
+message Duration {
+  Date startDate = 1;
+  Date endDate = 2;
+}
+
+message DurationReq{
+    Duration d = 1;
+}
+
+enum Status {
+  status_unspecified = 0;
+  draft = 1;
+  pending_approval = 2;
+  approval = 3;
+  active = 4;
+  inactive = 5;
+  closed = 6;
+  cancelled = 7;
+}
