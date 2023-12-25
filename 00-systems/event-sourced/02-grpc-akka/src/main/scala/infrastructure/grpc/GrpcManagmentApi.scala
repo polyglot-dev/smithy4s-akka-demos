@@ -1,9 +1,9 @@
 package infrastructure
 package grpc
 
-import services.Configs.GrpcConfig
+import services.Configs.*
 
-import api.eventSourced.grpc.*
+import api.event_sourced.managment.grpc.*
 import services.person.PersonService
 
 import akka.http.scaladsl.Http.ServerBinding
@@ -36,12 +36,9 @@ import com.google.rpc.Code
 import infrastructure.ProtobufErrorsBuilder.*
 // import GRPCServerImpl
 
-class GrpcApi(
-           personService: PersonService)
-             (
-               using ec: ExecutionContextExecutor,
-               sys: ActorSystem[Nothing],
-               config: GrpcConfig):
+class GrpcManagmentApi(
+                    using sys: ActorSystem[Nothing],
+                    config: GrpcManagmentConfig):
 
     val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -74,17 +71,12 @@ class GrpcApi(
     }
 
     def init(): Future[ServerBinding] =
-        // val service: HttpRequest => Future[HttpResponse] = HomeServicePowerApiHandler
-        //   .withServerReflection(
-        //     GRPCServerImpl(personService)
-        //   )
-
         val service: HttpRequest => Future[HttpResponse] = akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(
-          HomeServicePowerApiHandler.partial(
-            implementation = GRPCServerImpl(personService),
+          ManagmentServicePowerApiHandler.partial(
+            implementation = ManagmentGRPCServerImpl(),
             eHandler = eHandler
           ),
-          akka.grpc.scaladsl.ServerReflection.partial(List(HomeService))
+          akka.grpc.scaladsl.ServerReflection.partial(List(ManagmentService))
         )
 
         Http()

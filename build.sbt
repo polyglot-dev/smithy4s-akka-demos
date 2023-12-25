@@ -159,7 +159,7 @@ lazy val root = project
 lazy val tracingHttpService = project
   .in(file("00-systems/tracing/02-http-service"))
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(`smithy4s-defs`)
+  .dependsOn(smithy4s_defs)
   .dependsOn(api_grpc_fs2_tracing)
   .settings(commonSettings)
   .settings(
@@ -196,7 +196,7 @@ lazy val tracingGrpcService = project
     )
   )
 
-lazy val `smithy4s-defs` = project
+lazy val smithy4s_defs = project
   .in(file("00-systems/tracing/01-api-rest"))
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(commonSettings)
@@ -221,7 +221,7 @@ lazy val api_grpc_akka_tracing = project
     organization := "com.demos.grpc",
     name := "api-grpc-akka",
     Compile / PB.protoSources ++= Seq(
-      (`grpc-def-tracing` / Compile / baseDirectory).value / "grpc" / "v1",
+      (grpc_def_tracing / Compile / baseDirectory).value / "grpc" / "v1",
     ),
     akkaGrpcCodeGeneratorSettings += "server_power_apis"
   )
@@ -237,12 +237,12 @@ lazy val api_grpc_fs2_tracing = project
     organization := "com.demos.grpc",
     name := "api-grpc-fs2",
     Compile / PB.protoSources ++= Seq(
-      (`grpc-def-tracing` / Compile / baseDirectory).value / "grpc" / "v1",
+      (grpc_def_tracing / Compile / baseDirectory).value / "grpc" / "v1",
     ),
     libraryDependencies ++= Tracing.grpcFs2Dependencies,
   )
 
-lazy val `grpc-def-tracing` = project.in(file("00-apis/tracing/grpc"))
+lazy val grpc_def_tracing = project.in(file("00-apis/tracing/grpc"))
   .settings(commonSettings)
   .settings(
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
@@ -355,7 +355,7 @@ lazy val api_rest_avro_artifact = project
 lazy val basic_rest = project
   .in(file("00-systems/smithy-basic/02-http-service-basic"))
   .enablePlugins(JavaAppPackaging)
-  .dependsOn(`basic-smithy4s-defs`)
+  .dependsOn(basic_smithy4s_defs)
   .settings(commonSettings)
   .settings(
     scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
@@ -371,7 +371,7 @@ lazy val basic_rest = project
     libraryDependencies ++= Basic.httpServiceDependencies,
   )
 
-lazy val `basic-smithy4s-defs` = project
+lazy val basic_smithy4s_defs = project
   .in(file("00-systems/smithy-basic/01-api-rest-basic"))
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(commonSettings)
@@ -390,7 +390,11 @@ lazy val eventSourcedGrpcService = project
   .in(file("00-systems/event-sourced/02-grpc-akka"))
   .enablePlugins(JavaAppPackaging)
   .dependsOn(api_grpc_akka_event_sourced)
+  .aggregate(api_grpc_akka_event_sourced)
   .dependsOn(core_event_sourced)
+  .aggregate(core_event_sourced)
+  .dependsOn(journal_events_akka_event_sourced)
+  .aggregate(journal_events_akka_event_sourced)
   .settings(
     // Compile / run / fork := true,
     scalacOptions += autoImportSettingsCommon.mkString(start = "-Yimports:", sep = ",", end = ""),
@@ -408,7 +412,7 @@ lazy val eventSourcedGrpcService = project
       libraryDependencies ++= Akka.grpcAkkaDependencies ++ Seq(
         //  "com.google.protobuf" % "protobuf-java-util" % "3.25.0",
         "com.thesamet.scalapb" %% "scalapb-json4s" % "0.12.0",
-      ),
+      ) ++ Cruds.httpServiceDependencies,
     )
   )
 
@@ -424,6 +428,35 @@ lazy val core_event_sourced = project
     )
   )
 
+lazy val base_akka_event_sourced = project
+  .in(file("00-systems/event-sourced/00-base"))
+  .settings(commonSettings)
+  .settings(
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    organization := "com.demos",
+    name := "base-akka",
+  )
+
+lazy val journal_events_akka_event_sourced = project
+  .in(file("00-systems/event-sourced/01-events"))
+  .settings(commonSettings)
+  .dependsOn(base_akka_event_sourced)
+  .aggregate(base_akka_event_sourced)
+  .settings(
+    Compile / PB.targets := Seq(
+      scalapb.gen() -> (Compile / sourceManaged).value / "scalapb"
+    ),
+    PB.protocVersion := "3.25.0",
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    organization := "com.demos",
+    name := "journal-events-akka",
+    libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
+  )
+
 lazy val api_grpc_akka_event_sourced = project
   .in(file("artifacts/event-sourced/01-api-grpc-akka"))
   .enablePlugins(AkkaGrpcPlugin)
@@ -437,12 +470,12 @@ lazy val api_grpc_akka_event_sourced = project
     organization := "com.demos.grpc",
     name := "api-grpc-akka",
     Compile / PB.protoSources ++= Seq(
-      (`grpc-def-event-sourced` / Compile / baseDirectory).value / "grpc" / "v1",
+      (grpc_def_event_sourced / Compile / baseDirectory).value / "grpc" / "v1",
     ),
     akkaGrpcCodeGeneratorSettings += "server_power_apis"
   )
 
-lazy val `grpc-def-event-sourced` = project.in(file("00-apis/event-sourced"))
+lazy val grpc_def_event_sourced = project.in(file("00-apis/event-sourced"))
   .settings(commonSettings)
   .settings(
     version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(

@@ -32,7 +32,9 @@ import java.util.UUID
 trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecutor):
     this: CommonGrpc =>
 
-    def createPersonX(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
+    transparent inline given TransformerConfiguration[?] = TransformerConfiguration.default.enableDefaultValues
+
+    def createPerson(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
         val id = UUID.randomUUID().toString
         personService.createPerson(id, in.transformInto[Person]).transform:
             case Success(value) =>
@@ -45,10 +47,11 @@ trait PersonGrpc(personService: PersonService)(using ec: ExecutionContextExecuto
               Failure(
                 GrpcServiceException(Code.INTERNAL, "Internal error", Seq(error))
               )
-    def createPerson(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
+
+    def createPersonY(in: CreatePersonRequest, metadata: Metadata): Future[CreatePersonResponse] =
         val id = UUID.randomUUID().toString
-        logger.error(s"createPerson: $id")
-        Future{CreatePersonResponse(id)}
+        // logger.error(s"createPerson: $id")
+        Future { CreatePersonResponse(id) }
 
     def updatePerson(in: UpdatePersonRequest, metadata: Metadata): Future[GetPersonResponse] =
       personService.updatePerson(in.id, in.transformInto[PersonUpdate]).transform:

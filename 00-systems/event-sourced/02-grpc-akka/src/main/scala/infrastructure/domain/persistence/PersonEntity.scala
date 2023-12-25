@@ -17,7 +17,7 @@ import akka.Done
 
 import util.person.EventsTags
 
-object PersonEntity:
+object PersonEntity extends PersonEntityCommon:
 
     export person.DataModel.*
     export person.Commands.*
@@ -34,8 +34,100 @@ object PersonEntity:
       town: Option[String], 
       address: Option[Address],
     ) extends CborSerializable, 
+              PersonEntityCommon,
               PersonCommandHandler,
               PersonEventHandler
+// format: on
+
+    def onFirstCommand(cmd: Command): ReplyEffect =
+      cmd match
+        case CreatePersonCommand(person: Person, replyTo) =>
+          Effect.persist(
+            PersonCreated(
+              person.name,
+              person.town,
+              person.address,
+            )
+          ).thenReply(replyTo)(
+            _ => Done
+          )
+        case default                                      =>
+          Effect
+            .none
+            .thenReply(default.replyTo)(
+              _ =>
+                ResultError(
+                  TransportError.NotFound,
+                  "Person do not exists"
+                )
+            )
+
+    def onFirstEvent(event: Event): State =
+      event match
+        case e @ PersonCreated(name, town, address) =>
+          logger.info(s"PersonCreated: $e")
+          State(name, town, address)
+        case _                                      => throw new IllegalStateException(s"unexpected event [$event] in empthy state")
+
+    def apply
+      (persistenceId: PersistenceId)(using config: PersonEntityConfig)
+      : Behavior[Command] = Behaviors.setup[Command]:
+        context =>
+            EventSourcedBehavior.withEnforcedReplies[Command, Event, Option[State]](
+              persistenceId,
+              None,
+              (state, cmd) =>
+                state match {
+                  case None         => onFirstCommand(cmd)
+                  case Some(person) => person.applyCommand(cmd)
+                },
+              (state, event) =>
+                state match {
+                  case None         => Some(onFirstEvent(event))
+                  case Some(person) => Some(person.applyEvent(event))
+                }
+            )
+              .withTagger:
+                  case _: PersonCreated => Set(EventsTags.PersonCreated.value, EventsTags.PersonCreateUpdated.value)
+                  case _: PersonUpdated => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
+                  case _: PersonFixed   => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
+              .snapshotWhen {
+                 case (state, _, sequenceNumber) => true
+                }
+              .withRetention(
+                RetentionCriteria
+                  .snapshotEvery(
+                    numberOfEvents = config.snapshotNumberOfEvents,
+                    keepNSnapshots = config.snapshotKeepNsnapshots
+                  )
+              ).onPersistFailure(
+                SupervisorStrategy.restartWithBackoff(
+                  minBackoff = config.restartMinBackoff,
+                  maxBackoff = config.restartMaxBackoff,
+                  randomFactor = config.restartRandomFactor
+                )
+              )
+            // .eventAdapter()
+
+object PersonEntity2:
+
+    export person.DataModel.*
+    export person.Commands.*
+    export person.Events.*
+    import util.*
+
+    val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command]("person")
+
+    type ReplyEffect = akka.persistence.typed.scaladsl.ReplyEffect[Event, Option[State]]
+
+// format: off
+    case class State(
+      name: String, 
+      town: Option[String], 
+      address: Option[Address],
+    ) extends CborSerializable, 
+              PersonCommandHandler2,
+              PersonEventHandler2
 // format: on
 
     def onFirstCommand(cmd: Command): ReplyEffect =
@@ -87,6 +179,7 @@ object PersonEntity:
               .withTagger:
                   case _: PersonCreated => Set(EventsTags.PersonCreated.value, EventsTags.PersonCreateUpdated.value)
                   case _: PersonUpdated => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
+                  case _: PersonFixed   => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
               .withRetention(
                 RetentionCriteria
                   .snapshotEvery(
@@ -100,3 +193,4 @@ object PersonEntity:
                   randomFactor = config.restartRandomFactor
                 )
               )
+            // .eventAdapter()

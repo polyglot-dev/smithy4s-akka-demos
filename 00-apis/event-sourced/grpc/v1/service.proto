@@ -8,32 +8,31 @@ package api.eventSourced.grpc;
 import "scalapb/scalapb.proto";
 import "google/protobuf/wrappers.proto";
 
-message Address{
-    string street = 1;
-    int32 no = 2;
-}
-
 enum Status {
    active = 0;
    inactive = 1;
 }
 
+message Address{
+  google.protobuf.StringValue street = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+  google.protobuf.Int64Value no = 2 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+}
+
 message CreatePersonRequest {
-    string name = 1;
-    string town = 2;
-    Address address = 3;
-    Status status = 4;
+  google.protobuf.StringValue name = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+  google.protobuf.StringValue town = 2;
+  Address address = 3;
+    // Status status = 4;
 }
 
 message CreatePersonResponse {
-    string message = 1;
+    string id = 1;
 }
 
 message UpdatePersonRequest {
-    string name = 1;
-    string town = 2;
-    Address address = 3;
-    string id = 4;
+  google.protobuf.StringValue id = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+  google.protobuf.StringValue town = 2;
+  Address address = 3;
 }
 
 message GetPersonRequest {
@@ -41,9 +40,9 @@ message GetPersonRequest {
 }
 
 message GetPersonResponse {
-    string name = 1;
-    string town = 2;
-    Address address = 3;
+   google.protobuf.StringValue name = 1;
+   google.protobuf.StringValue town = 2;
+   Address address = 3;
 }
 
 service HomeService {

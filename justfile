@@ -7,8 +7,10 @@ set export
 
 postgres_sql_file := justfile_directory() + "/docker/postgres/docker-entrypoint-initdb.d/postgres.sql"
 postgres_data_dir := justfile_directory() + "/docker/data/.postgres"
+cassandra_data_dir := justfile_directory() + "/docker/data/.cassandra"
 
 alias dc-u := docker-compose-up
+alias dck8s-u := docker-compose-k8s-up
 alias dc-d := docker-compose-down
 alias clean-dd := clean-docker-compose-data
 
@@ -20,16 +22,32 @@ docker-compose-up-pre:
   set -euxo pipefail
 
   if [[ ! -d "{{postgres_data_dir}}" ]]; then
-    cat docker/postgres/ddls/create_user.sql \
-      docker/postgres/ddls/create_db.sql \
-      docker/postgres/ddls/domains/*.sql \
-      docker/postgres/ddls/akka.sql \
-      docker/postgres/ddls/grant_permissions.sql \
-      docker/postgres/ddls/create_test_db.sql \
-      docker/postgres/ddls/domains/*.sql \
-      docker/postgres/ddls/akka.sql \
-      docker/postgres/ddls/grant_permissions.sql > {{postgres_sql_file}}
+    cat docker/postgres/ddls/create-user.sql \
+        docker/postgres/ddls/create-db.sql \
+        docker/postgres/ddls/create-test-db.sql > {{postgres_sql_file}}
   fi
+
+run-migrations:
+    liquibase update --defaults-file=docker/cassandra/liquibase.properties
+    liquibase update --defaults-file=docker/postgres/liquibase.properties
+    liquibase execute-sql \
+              --sql-file=docker/postgres/ddls/grant-permissions.sql \
+              --defaults-file=docker/postgres/liquibase.properties
+    liquibase update --defaults-file=docker/postgres/liquibase-test.properties
+    liquibase execute-sql \
+              --sql-file=docker/postgres/ddls/grant-permissions.sql \
+              --defaults-file=docker/postgres/liquibase-test.properties
+
+truncate-all:
+    liquibase execute-sql \
+              --sql-file=docker/cassandra/ddls/truncate-all.cql \
+              --defaults-file=docker/cassandra/liquibase.properties
+    liquibase execute-sql \
+              --sql-file=docker/postgres/ddls/truncate-all.sql \
+              --defaults-file=docker/postgres/liquibase.properties
+drop-all:
+    liquibase drop-all \
+              --defaults-file=docker/postgres/liquibase.properties
 
 docker-compose-down-pre:
   #!/usr/bin/env bash
@@ -39,32 +57,47 @@ docker-compose-down-pre:
     rm {{postgres_sql_file}}
   fi
 
-docker-compose-up: docker-compose-up-pre
+docker-compose-k8s-up:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  just docker-compose-up microk8s
+
+docker-compose-up environment='local': docker-compose-up-pre
   #!/usr/bin/env bash
   set -euxo pipefail
 
-  if [ -f  docker/.profile ]; then
+  if [[ ! -d "{{cassandra_data_dir}}" ]]; then
+    showLogs=true
+  else
+    showLogs=false
+  fi
+  
+  if [ -f docker/.profile ]; then
     profile=$(cat docker/.profile)
     if [ "$profile" == "microk8s" ]; then
       if [[ {{os()}} == "macos" ]]; then
-        docker compose --profile microk8s --profile macos -f docker/docker-compose.yml down
+        docker compose --profile $environment --profile macos -f docker/docker-compose.yml down
       else
-        docker compose --profile microk8s --profile linux -f docker/docker-compose.yml down
+        docker compose --profile $environment --profile linux -f docker/docker-compose.yml down
       fi
-      echo local > docker/.profile
       if [[ {{os()}} == "macos" ]]; then
-        docker compose --profile local --profile macos -f docker/docker-compose.yml up -d
+        docker compose --profile $environment --profile macos -f docker/docker-compose.yml up -d
       else
-        docker compose --profile local --profile linux -f docker/docker-compose.yml up -d
+        docker compose --profile $environment --profile linux -f docker/docker-compose.yml up -d
       fi
     fi
   else
-    echo local > docker/.profile
+    echo $environment > docker/.profile
     if [[ {{os()}} == "macos" ]]; then
-      docker compose --profile local --profile macos -f docker/docker-compose.yml up -d
+      docker compose --profile $environment --profile macos -f docker/docker-compose.yml up -d
     else
-      docker compose --profile local --profile linux -f docker/docker-compose.yml up -d
+      docker compose --profile $environment --profile linux -f docker/docker-compose.yml up -d
     fi
+  fi
+
+  if [ "$showLogs" == "true" ]; then
+    docker logs docker-cassandra_temp-1 -f
+    just run-migrations
   fi
 
 docker-compose-down: docker-compose-down-pre
@@ -123,11 +156,10 @@ event-sourced-grpc:
 basic:
   sbt -Dactive-app=basic-rest
 
-
 crud-gen-avsc:
   #!/usr/bin/env bash
   set -euxo pipefail
-  
+
   allAvdls="$AVRO_IDLS_SOURCE/*.avdl"
   for file in $allAvdls; do
     dfile=$(basename $file)
@@ -191,3 +223,28 @@ clean-avros: generate-avros
       f2.write(json.dumps(data, indent=2))
     os.remove(filename)
     os.rename(filename + "_", filename)
+
+grpcui-func-start port='8080':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  grpcui -plaintext 0.0.0.0:$port &
+  echo "grpcui started on port $port"
+  echo $! > .grpcui-$port.pid
+  pid=$(cat .grpcui-$port.pid)
+  path=$(sudo netstat -ltnp | grep -w $pid | awk '{print $4}')
+  chrome "http://$path/"
+
+grpcui-func-end port='8080':
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  kill -9 $(cat .grpcui-$port.pid)
+  rm .grpcui-$port.pid
+
+grpcui-s:
+  just grpcui-func-start 8080
+  just grpcui-func-start 8081
+
+grpcui-e:
+  #!/usr/bin/env bash
+  just grpcui-func-end 8080
+  just grpcui-func-end 8081

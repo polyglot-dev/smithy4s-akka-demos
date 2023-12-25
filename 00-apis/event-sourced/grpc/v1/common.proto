@@ -17,6 +17,12 @@ option (scalapb.options) = {
   scala3_sources: true
 };
 
+message Request {}
+
+message Response {
+  google.protobuf.StringValue message = 1;
+}
+
 message BadRequestError{
     option (scalapb.message).extends = "BaseMessage";
     string code = 1;

@@ -9,5 +9,5 @@ object CommonTransformers:
 
     transparent inline given TransformerConfiguration[?] = TransformerConfiguration.default.enableDefaultValues
 
-    given optionStringToString: Transformer[Option[String], String] with
-        def transform(in: Option[String]): String = in.getOrElse("")
+    // given optionStringToString: Transformer[Option[String], String] with
+    //     def transform(in: Option[String]): String = in.getOrElse("")

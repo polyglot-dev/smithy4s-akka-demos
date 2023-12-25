@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "infrastructure.entities.person.events";
+
+package journal.infrastructure.entities.person.events;
+
+import "scalapb/scalapb.proto";
+import "google/protobuf/wrappers.proto";
+
+option (scalapb.options) = {
+  scope: FILE
+  package_name: "journal.infrastructure.entities.person.events"
+  flat_package: true
+  single_file: true
+  java_conversions: false
+  // import: "com.thesamet.pb.MyType"
+  import: "infrastructure.journal.*"
+  // preamble: "sealed trait BaseMessage"
+  // preamble: "sealed trait CommonMessage"
+  lenses: true
+  getters: true
+  retain_source_code_info: false
+  no_default_values_in_constructor: false
+  preserve_unknown_fields: false
+  // enum_value_naming: CAMEL_CASE
+  enum_strip_prefix: false
+  // bytes_type: "scodec.bits.ByteVector"
+  scala3_sources: true
+};
+
+message PersonCreated {
+  option (scalapb.message).extends = "JournalSerializable";
+  google.protobuf.StringValue name = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+  google.protobuf.StringValue town = 2;
+  Address address = 3;
+}
+
+message Address {
+  option (scalapb.message).extends = "JournalSerializable";
+  google.protobuf.StringValue street= 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+  google.protobuf.Int64Value no = 2 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+}
+
+message PersonUpdated {
+  option (scalapb.message).extends = "JournalSerializable";
+  google.protobuf.StringValue town = 2;
+  Address address = 3;
+}
+
+message PersonFixed{
+  option (scalapb.message).extends = "JournalSerializable";
+  google.protobuf.StringValue name = 1;
+  google.protobuf.StringValue town = 2;
+  Address address = 3;
+}
+
+    // case class PersonCreated(name: String, town: Option[String], address: Option[Address])         extends Event
+
+    // case class PersonUpdated(name: Option[String], town: Option[String], address: Option[Address]) extends Event
+
+    // case class Address(street: String, no: Int) extends Model

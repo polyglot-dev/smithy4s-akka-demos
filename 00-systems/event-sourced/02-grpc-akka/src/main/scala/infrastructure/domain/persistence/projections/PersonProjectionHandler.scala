@@ -15,11 +15,9 @@ import akka.Done
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 import person.DataModel.*
-import infrastructure.entities.person.Events.PersonCreated
-import infrastructure.entities.person.Events.PersonUpdated
+import infrastructure.entities.person.Events.*
 import io.r2dbc.postgresql.codec.Json
 
 import io.circe.*, io.circe.syntax.*, io.circe.parser.*, io.circe.generic.auto.*
@@ -36,7 +34,7 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
         val groups = envelopes.groupBy(_.persistenceId)
         val groupsIds =
           groups.keys.map(
-            e => UUID.fromString(e.substring(PersonEntity.typeKey.name.length() + 1))
+            e => e.substring(PersonEntity.typeKey.name.length() + 1)
           ).toList
         val groupsIdsSegment = groupsIds.indices.map(_ + 1).map(
           "$" + _
@@ -50,11 +48,11 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
             .foldLeft(stmtRange):
                 case (stmt, (id, i)) => stmt.bind(i, id)
 
-        val existingPersonsTuples: Future[IndexedSeq[(UUID, String, Option[String], Option[Json])]] =
+        val existingPersonsTuples: Future[IndexedSeq[(String, String, Option[String], Option[Json])]] =
           session
             .select(stmtForAllExistingPersons)(
               (row: Row) =>
-                (row.get("id", classOf[UUID]),
+                (row.get("id", classOf[String]),
                  row.get("name", classOf[String]),
                  Option(row.get("town", classOf[String])),
                  Option(row.get("address", classOf[Json])),
@@ -62,7 +60,7 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
             )
 
         val existingPersonsAsMap = existingPersonsTuples.map(_.map {
-          case (id: UUID, name: String, town: Option[String], address: Option[Json]) =>
+          case (id: String, name: String, town: Option[String], address: Option[Json]) =>
             val addressValue = address.map(
               v =>
                 decode[Address](v.asString).toOption
@@ -75,15 +73,15 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
                 case (k, v) => (k, v(0)._2)
               }.toSeq: _*)
 
-        val newEntities = mutable.Map.empty[UUID, PersonEntity.State]
+        val newEntities = mutable.Map.empty[String, PersonEntity.State]
         val batch = existingPersonsAsMap.map:
             case existingEntities =>
-              def getEntity(id: UUID): PersonEntity.State = newEntities.getOrElse(
+              def getEntity(id: String): PersonEntity.State = newEntities.getOrElse(
                 id,
                 existingEntities(id)
               )
 
-              def updateEntity(id: UUID, state: PersonEntity.State) =
+              def updateEntity(id: String, state: PersonEntity.State) =
                 if newEntities.contains(id) then
                     newEntities.update(id, state)
                 else
@@ -91,14 +89,16 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
 
               val finalState = groups.map:
                   case (key, value) =>
-                    val uuidKey = UUID.fromString(key.substring(PersonEntity.typeKey.name.length() + 1))
+                    val uuidKey = key.substring(PersonEntity.typeKey.name.length() + 1)
                     val (head :: _, rest) = value.toList.splitAt(1): @unchecked
                     head.event match
                       case PersonCreated(name, town, address) =>
                         val p = PersonEntity.State(name, town, address)
                         newEntities += (uuidKey -> p)
 
-                      case ev @ PersonUpdated(name, town, address) =>
+                      case ev @ PersonUpdated(town, address) => updateEntity(uuidKey, getEntity(uuidKey).applyEvent(ev))
+
+                      case ev @ PersonFixed(name, town, address) =>
                         updateEntity(uuidKey, getEntity(uuidKey).applyEvent(ev))
 
                     val restEvents = rest.map(_.event)
@@ -117,26 +117,47 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
                     )
 
                     if newEntities.contains(uuidKey) then
-                        session
-                          .createStatement("""
-                                        INSERT INTO person_projection(id, name, town, address) 
-                                        VALUES                       ($1, $2,   $3  , $4     )
-                                    """)
-                          .bind(0, uuidKey)
-                          .bind(1, state.name)
-                          .bind(2, state.town.orNull)
-                          .bind(3, addr.orNull)
+                        val optionalFields = List[(String, Option[Any])](("town", state.town), ("address", addr))
+                        val fields = optionalFields.filter(_._2.isDefined)
+                        val fieldsNames = fields.map(_._1).mkString(start = if fields.isEmpty then "" else ", ",
+                                                                    sep = ", ",
+                                                                    end = ""
+                                                                   )
+                        val fieldsIndexForBindings = fields.indices.map(_ + 3).map(
+                          "$" + _
+                        ).mkString(start = if fields.isEmpty then "" else ", ", sep = ", ", end = "")
+
+                        val stmtRange = session
+                          .createStatement(
+                            "INSERT INTO person_projection(id, name " + fieldsNames + ")" + " VALUES ($1, $2 " + fieldsIndexForBindings + ")"
+                          )
+
+                        (List[Option[Any]](Some(uuidKey), Some(state.name)) ++ fields.map(_._2))
+                          .zipWithIndex
+                          .foldLeft(stmtRange):
+                              case (stmt, (data, i)) => stmt.bind(i, data.get)
                     else
-                        session
-                          .createStatement("""
-                                          UPDATE person_projection
-                                          SET name = $1, town = $2, address = $3
-                                          WHERE id = $4
-                                      """)
-                          .bind(0, state.name)
-                          .bind(1, state.town.orNull)
-                          .bind(2, addr.orNull)
-                          .bind(3, uuidKey)
+
+                        val optionalFields = List[(String, Option[Any])](("name", Some(state.name)),
+                                                                         ("town", state.town),
+                                                                         ("address", addr)
+                                                                        )
+                        val fields = optionalFields.filter(_._2.isDefined)
+                        val fieldsNames = fields.map(_._1)
+                        val expr = fields
+                          .map(_._1)
+                          .zipWithIndex
+                          .map:
+                              case (name, index) => s"$name = $$${index + 1}"
+                          .mkString(", ")
+
+                        val stmtRange = session
+                          .createStatement("UPDATE person_projection SET " + expr + " WHERE id = $" + (fields.size + 1))
+
+                        (fields.map(_._2) ++ List[Option[Any]](Some(uuidKey)))
+                          .zipWithIndex
+                          .foldLeft(stmtRange):
+                              case (stmt, (data, i)) => stmt.bind(i, data.get)
 
         batch.map {
           case stmts => session.update(stmts.toVector)

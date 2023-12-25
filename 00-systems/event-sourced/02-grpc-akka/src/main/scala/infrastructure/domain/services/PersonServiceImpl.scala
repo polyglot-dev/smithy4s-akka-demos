@@ -9,7 +9,7 @@ import akka.Done
 import akka.actor.typed.ActorSystem
 import scala.concurrent.ExecutionContextExecutor
 import akka.util.Timeout
-// import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory
 // import java.util.Date
 
 import infrastructure.entities.person.DataModel.*
@@ -31,15 +31,17 @@ class PersonServiceImpl(personSharding: PersonSharding)
                          config: ServiceConfig) extends PersonService:
     given ec: ExecutionContextExecutor = sys.executionContext
     given timeout: Timeout = config.requestToActorsTimeout
-    // private val logger = LoggerFactory.getLogger(getClass)
+    private val logger = LoggerFactory.getLogger(getClass)
 
-    def createPerson(id: String, data: Person): Future[Done | ResultError] = 
+    def createPerson(id: String, data: Person): Future[Done | ResultError] =
+      // logger.error(s"creating Person: $data")
       personSharding
-      .entityRefFor(PersonEntity.typeKey, id)
-      .ask(PersonEntity.CreatePersonCommand(data, _))
-      .mapTo[Done | ResultError]
+        .entityRefFor(PersonEntity.typeKey, id)
+        .ask(PersonEntity.CreatePersonCommand(data, _))
+        .mapTo[Done | ResultError]
 
     def updatePerson(id: String, data: PersonUpdate): Future[Person | ResultError] =
+        // logger.error(s"updating Person: $data")
         val ref = personSharding
           .entityRefFor(
             PersonEntity.typeKey,
@@ -53,8 +55,7 @@ class PersonServiceImpl(personSharding: PersonSharding)
             case e: ResultError => Future { e }
           }
 
-    def getPerson(id: String): Future[Person | ResultError] = 
-      personSharding
+    def getPerson(id: String): Future[Person | ResultError] = personSharding
       .entityRefFor(PersonEntity.typeKey, id)
       .ask(PersonEntity.GetPersonCommand(_))
       .mapTo[Person | ResultError]

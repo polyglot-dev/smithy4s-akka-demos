@@ -22,6 +22,11 @@ object Configs:
                        hardTerminationDeadline: FiniteDuration):
         export host.*
 
+    case class GrpcManagmentConfig(
+                                host: HostConfig,
+                                hardTerminationDeadline: FiniteDuration):
+        export host.*
+
     case class EntityConfig(
                            snapshotNumberOfEvents: Int,
                            snapshotKeepNsnapshots: Int,
