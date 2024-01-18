@@ -34,7 +34,6 @@ import scala.concurrent.duration.*
 import infrastructure.http.Result
 
 import integration.serializers.*
-import org.integration.avro.ad
 
 import org.apache.avro.specific.SpecificRecord
 
@@ -75,7 +74,7 @@ object DI:
 
           make[Producer[ProducerParams]].from:
               (handler: Handler[ProducerParams]) =>
-                  new ProducerAdvertiserImpl(ad.Advertiser.getClassSchema(), handler)
+                  new ProducerImpl(handler)
 
           make[Handler[ProducerParams]].from:
               () =>
@@ -98,6 +97,8 @@ object DI:
 
 import _root_.io.scalaland.chimney.dsl.*
 import _root_.io.scalaland.chimney.{ partial, PartialTransformer, Transformer }
+
+import org.integration.avro.ad
 
 object App extends IOApp:
 

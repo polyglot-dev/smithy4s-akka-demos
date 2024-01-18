@@ -20,7 +20,7 @@ import io.confluent.kafka.serializers.{ AbstractKafkaAvroSerDeConfig, KafkaAvroS
 
 import IO.asyncForIO
 
-class ProducerAdvertiserImpl(writerSchema: Schema, handler: Handler[ProducerParams]) extends Producer[ProducerParams]:
+class ProducerImpl(handler: Handler[ProducerParams]) extends Producer[ProducerParams]:
 
     val kafkaAvroSerDeConfig = Map[String, Any](
       AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG -> "http://localhost:18081",
