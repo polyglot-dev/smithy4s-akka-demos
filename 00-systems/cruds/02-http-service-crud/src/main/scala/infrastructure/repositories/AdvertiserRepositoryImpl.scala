@@ -227,11 +227,11 @@ class AdvertiserRepositoryImpl(xa: Transactor[IO], logger: Option[IzLogger] = No
             advertiser
               .into[AdvertiserDTO]
               .withFieldComputed(ad => ad.campaigns,
-                                        _ =>
-                                          campaigns.map(
-                                            campaign => campaign.transformInto[CampaignDTO]
-                                          )
-)
+                                 _ =>
+                                   campaigns.map(
+                                     campaign => campaign.transformInto[CampaignDTO]
+                                   )
+                                )
               .transform
       }
     }

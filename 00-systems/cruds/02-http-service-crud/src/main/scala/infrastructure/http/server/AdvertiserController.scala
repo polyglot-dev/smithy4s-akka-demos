@@ -15,8 +15,7 @@ import fs2.kafka.*
 
 trait AdvertiserHttpController(
                             service: AdvertiserService[Result],
-                            logger: Option[IzLogger],
-                            ):
+                            logger: Option[IzLogger]):
 
     def updateAdvertiserBasicInformation(id: Int, body: Option[PersonInfo])
         : Result[UpdateAdvertiserBasicInformation200] =

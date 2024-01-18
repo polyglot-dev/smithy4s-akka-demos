@@ -17,42 +17,49 @@ trait CSVHandle {
 }
 
 trait Handle {
-  val signal: IO[Ref[IO, IO[Deferred[IO, String]]]] 
+  val signal: IO[Ref[IO, IO[Deferred[IO, String]]]]
   def resetSignal(): Unit
 }
 
 class HandleImpl extends Handle {
   val signal: IO[Ref[IO, IO[Deferred[IO, String]]]] = IO.ref(IO.deferred[String])
+
   def resetSignal(): Unit = {
-    signal.flatMap{ psignal =>
-      psignal.set(IO.deferred[String])
+    signal.flatMap {
+      psignal =>
+        psignal.set(IO.deferred[String])
     }
   }
+
 }
 
 import logstage.IzLogger
 
 class EventStream(
-                ch: IO[Channel[IO, String]],
-                logger: Option[IzLogger] = None) {
+                 ch: IO[Channel[IO, String]],
+                 logger: Option[IzLogger] = None) {
 
   val producerSettings = ProducerSettings[IO, String, String]
     .withBootstrapServers("localhost:19092")
-    
+
   def init()(implicit S: Async[IO]): Stream[IO, Any] = {
-    Stream.eval(ch).flatMap { channel =>
-       channel.stream
-       .evalTap(e => IO.println(s"Element: $e"))
-       .map {
-         value =>
-             logger.foreach(_.error(s"EventStream =>>>>>>>>>>>> $value"))
-             val record = ProducerRecord("topic", "key", value)
-             ProducerRecords.one(record)
-       }
-       .through(KafkaProducer.pipe(producerSettings))
-       .drain
+    Stream.eval(ch).flatMap {
+      channel =>
+        channel.stream
+          .evalTap(
+            e => IO.println(s"Element: $e")
+          )
+          .map {
+            value =>
+                logger.foreach(_.error(s"EventStream =>>>>>>>>>>>> $value"))
+                val record = ProducerRecord("topic", "key", value)
+                ProducerRecords.one(record)
+          }
+          .through(KafkaProducer.pipe(producerSettings))
+          .drain
     }
   }
+
 }
 
 // class EventStream(outSideQueue: Stream[IO, String]) {

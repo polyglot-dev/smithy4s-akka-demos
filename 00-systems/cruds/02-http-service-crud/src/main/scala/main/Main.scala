@@ -79,7 +79,7 @@ object DI:
 
           make[Handler[ProducerParams]].from:
               () =>
-                new Handler[ProducerParams]()
+                  new Handler[ProducerParams]()
 
           make[AdvertiserService[Result]].from:
               (
@@ -96,7 +96,6 @@ object DI:
                   given HttpServerConfig = config
                   HttpServerResource(service, logger)
 
-
 import _root_.io.scalaland.chimney.dsl.*
 import _root_.io.scalaland.chimney.{ partial, PartialTransformer, Transformer }
 
@@ -104,23 +103,23 @@ object App extends IOApp:
 
     def run(args: List[String]): IO[ExitCode] =
         import DI.*
-    
-        transparent inline given TransformerConfiguration[?] = TransformerConfiguration.default.enableDefaultValues.enableBeanSetters.enableBeanGetters.enableInheritedAccessors
+
+        transparent inline given TransformerConfiguration[?] =
+          TransformerConfiguration.default.enableDefaultValues.enableBeanSetters.enableBeanGetters.enableInheritedAccessors
 
         given StatusToStatus: Transformer[Dtos.Status, ad.Status] with
 
             def transform(self: Dtos.Status): ad.Status =
               self match
-                case Dtos.Status.ACTIVE            => ad.Status.ACTIVE
-                case Dtos.Status.INACTIVE          => ad.Status.INACTIVE
-                case Dtos.Status.PENDING           => ad.Status.PENDING
-                case Dtos.Status.DELETED           => ad.Status.DELETED
+                case Dtos.Status.ACTIVE   => ad.Status.ACTIVE
+                case Dtos.Status.INACTIVE => ad.Status.INACTIVE
+                case Dtos.Status.PENDING  => ad.Status.PENDING
+                case Dtos.Status.DELETED  => ad.Status.DELETED
 
         Injector[IO]().produceRun(mainModule ++ configModule):
             (
               httpServer: HttpServerResource,
-              producer: Producer[ProducerParams],
-              ) =>
+              producer: Producer[ProducerParams]) =>
                 val program: IO[Unit] =
                   for
                     _ <- httpServer.resource.use(

@@ -17,8 +17,7 @@ import http.Result
 
 class HttpServerResource(
                       service: AdvertiserService[Result],
-                      logger: IzLogger,
-                      )(using config: HttpServerConfig):
+                      logger: IzLogger)(using config: HttpServerConfig):
 
     def resource: Resource[IO, Server] = ServerRoutes(service, Some(logger)).all
       .flatMap:

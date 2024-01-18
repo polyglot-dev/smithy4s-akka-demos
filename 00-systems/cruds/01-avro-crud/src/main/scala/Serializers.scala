@@ -95,13 +95,14 @@ object JsonAvroSerializer:
     }
 
 object Dtos:
-  enum Status(val id: String):
-    case ACTIVE extends Status("ACTIVE")
-    case INACTIVE extends Status("INACTIVE")
-    case PENDING extends Status("PENDING")
-    case DELETED extends Status("DELETED")
-    
-  case class Advertiser(id: Long, status: Status)
+
+    enum Status(val id: String):
+        case ACTIVE   extends Status("ACTIVE")
+        case INACTIVE extends Status("INACTIVE")
+        case PENDING  extends Status("PENDING")
+        case DELETED  extends Status("DELETED")
+
+    case class Advertiser(id: Long, status: Status)
 
 import io.scalaland.chimney.dsl.*
 
@@ -119,7 +120,7 @@ def main() =
       .setId(1)
       .setStatus(Status.ACTIVE)
       .build()
-    
+
     val dr: Dtos.Advertiser = ad.transformInto[Dtos.Advertiser]
     println(dr)
 

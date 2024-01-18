@@ -14,13 +14,12 @@ import _root_.infrastructure.internal.PersonInfo as ExternalPersonInfo
 import infrastructure.http.ErrorsBuilder.*
 
 enum AddressTypes:
-  case Address(name: Option[String], n: Option[Int])
-  case FullAddress(name: Option[String], n: Option[Int], country: Option[String])
+    case Address(name: Option[String], n: Option[Int])
+    case FullAddress(name: Option[String], n: Option[Int], country: Option[String])
 
 case class Person(name: String, town: String, address: Option[AddressTypes] = None)
 
 case class PersonInfo(name: Option[String] = None, town: Option[String] = None)
-
 
 import infrastructure.http.transformers.AdvertisersTransformers.given
 
@@ -30,19 +29,17 @@ object Person:
       p match
         case ExternalPerson("", town, address) => Left(badRequestError("name is mandatory"))
         case ExternalPerson(name, "", address) => Left(badRequestError("town is mandatory"))
-        case person: ExternalPerson            => 
-          
-                person.transformIntoPartial[Person].asEither match
-                  case Left(value) =>
-                    val msg = value.errors.map(
-                      (er: partial.Error) => er._1.asString
-                    ).mkString(",")
-                    Left(badRequestError(msg))
-                      // .toResult
+        case person: ExternalPerson            =>
+          person.transformIntoPartial[Person].asEither match
+            case Left(value) =>
+              val msg = value.errors.map(
+                (er: partial.Error) => er._1.asString
+              ).mkString(",")
+              Left(badRequestError(msg))
+            // .toResult
 
-                  case Right(value) =>
-                    Right(value)
-          // Right(person.transformInto[Person])
+            case Right(value) => Right(value)
+        // Right(person.transformInto[Person])
 
 object PersonInfo:
 

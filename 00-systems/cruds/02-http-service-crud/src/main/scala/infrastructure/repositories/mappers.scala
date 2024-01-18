@@ -17,7 +17,7 @@ import io.circe.derivation.Configuration
 object AdvertisersMappers {
 
   given Configuration = Configuration.default.withDiscriminator("type")
-  given Codec[AddressTypes] = Codec.AsObject.derivedConfigured                          
+  given Codec[AddressTypes] = Codec.AsObject.derivedConfigured
 
   given pgAddressDecoderGet: Get[AddressTypes] = pgDecoderGetT[AddressTypes]
   given pgAddressEncoderPut: Put[AddressTypes] = pgEncoderPutT[AddressTypes]

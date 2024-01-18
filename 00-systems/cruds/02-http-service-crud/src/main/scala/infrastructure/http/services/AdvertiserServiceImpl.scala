@@ -40,7 +40,7 @@ class AdvertiserServiceImpl(
                            logger: Option[IzLogger] = None) extends AdvertiserService[Result] {
 
   def getPersonById(id: String): Result[Person] = {
-    
+
     logger.foreach(_.info(s"Service, getting data from name: '$id'"))
 
     def validatePreconditions: Either[ServiceError, Tuple1[Long]] = {
@@ -57,8 +57,7 @@ class AdvertiserServiceImpl(
             repositoryResult <- repo.getPersonById(okId)
           yield {
             repositoryResult match
-              case Right(Some(person)) => 
-                
+              case Right(Some(person)) =>
                 // Right(person.transformInto[Person])
 
                 person.transformIntoPartial[Person].asEither match
@@ -67,12 +66,11 @@ class AdvertiserServiceImpl(
                       (er: partial.Error) => er._1.asString
                     ).mkString(",")
                     Left(badRequestError(msg))
-                      // .toResult
+                  // .toResult
 
-                  case Right(value) =>
-                    Right(value)
-                
-              case Right(None)         => Left(notFoundError(f"Data with id: ${id} missing"))
+                  case Right(value) => Right(value)
+
+              case Right(None) => Left(notFoundError(f"Data with id: ${id} missing"))
 
               case Left(ex) => Left(serviceUnavailableError("Error accessing data"))
           }
@@ -98,8 +96,7 @@ class AdvertiserServiceImpl(
           yield {
             repositoryResult match
               case Right(None)    => Left(notFoundError(f"Data with id: ${id} missing"))
-              case Right(Some(p)) => 
-                
+              case Right(Some(p)) =>
                 // Right(p.transformInto[Person])
 
                 p.transformIntoPartial[Person].asEither match
@@ -109,10 +106,9 @@ class AdvertiserServiceImpl(
                     ).mkString(",")
                     Left(badRequestError(msg))
 
-                  case Right(value) =>
-                    Right(value)
-                
-              case Left(ex)       =>
+                  case Right(value) => Right(value)
+
+              case Left(ex) =>
                 if ex.getMessage contains "duplicate key value" then
                     Left(conflictError(s"Advertiser with name: ${body.name.get} already exists"))
                 else if ex.getMessage contains "Person not found" then
@@ -124,7 +120,6 @@ class AdvertiserServiceImpl(
       }
     ).toResult
   }
-
 
   def createPerson(body: Person): Result[Long] = {
     logger.foreach(_.info(s"Service, creating advertiser: '$body'"))
@@ -139,23 +134,26 @@ class AdvertiserServiceImpl(
       repositoryResult match
         case Right(Some(p)) =>
           handler match
-            case Some(h) => 
-                h.produce(ProducerParams("campaigns.advertiser-update.v1", "key", ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE)))
-            case None => IO{Left(Channel.Closed)}
-        case Right(None) => IO{Left(Channel.Closed)}
+            case Some(h) =>
+              h.produce(ProducerParams("campaigns.advertiser-update.v1",
+                                       "key",
+                                       ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE)
+                                      ))
+            case None    => IO { Left(Channel.Closed) }
+        case Right(None)    => IO { Left(Channel.Closed) }
+        case Left(value)    => IO.raiseError(value)
+    }
+
+    def send(repositoryResult: Either[Throwable, Long]): IO[Either[Channel.Closed, Unit]] = {
+      repositoryResult match
+        case Right(id)   =>
+          for
+              i <- repo.getPersonById(id)
+              r <- send2(i)
+          yield r
         case Left(value) => IO.raiseError(value)
     }
-    
-    def send(repositoryResult: Either[Throwable, Long]): IO[Either[Channel.Closed, Unit]] = {
-            repositoryResult match
-              case Right(id) =>
-                for 
-                  i <- repo.getPersonById(id) 
-                  r <- send2(i)
-                yield r
-              case Left(value) => IO.raiseError(value)
-    }
-    
+
     validatePreconditions.fold(
       error => error.toResult,
       {

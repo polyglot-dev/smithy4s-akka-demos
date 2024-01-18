@@ -53,8 +53,7 @@ object Converter:
 
 class ServerRoutes(
                 service: AdvertiserService[Result],
-                logger: Option[IzLogger],
-                ):
+                logger: Option[IzLogger]):
 
     def translateMessage(message: String): String = {
 
@@ -72,7 +71,6 @@ class ServerRoutes(
         service,
         logger,
       ).transform(Converter.toIO))
-
         .mapErrors {
 
           case HttpPayloadError(_, expected, message) =>
