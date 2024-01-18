@@ -73,16 +73,20 @@ object DI:
               (res: PostgresResource, logger: IzLogger) =>
                   res.resource.map(AdvertiserRepositoryImpl(_, Some(logger)))
 
-          make[Handler[SpecificRecord]].from:
+          make[Producer[ProducerParams]].from:
+              (handler: Handler[ProducerParams]) =>
+                  new ProducerAdvertiserImpl(ad.Advertiser.getClassSchema(), handler)
+
+          make[Handler[ProducerParams]].from:
               () =>
-                new Handler[SpecificRecord]()
+                new Handler[ProducerParams]()
 
           make[AdvertiserService[Result]].from:
               (
                 repo: AdvertiserRepository[IO],
-                ch: Handler[SpecificRecord],
+                producer: Producer[ProducerParams],
                 logger: IzLogger) =>
-                  AdvertiserServiceImpl(repo, Some(ch), Some(logger))
+                  AdvertiserServiceImpl(repo, Some(producer), Some(logger))
 
           make[HttpServerResource].from:
               (
@@ -93,25 +97,8 @@ object DI:
                   HttpServerResource(service, logger)
 
 
-import _root_.io.confluent.kafka.serializers.KafkaAvroSerializer
-import _root_.io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import org.apache.avro.io.*
-import org.apache.avro.specific.SpecificDatumWriter
-import org.apache.avro.specific.SpecificDatumReader
-
-
-import org.apache.kafka.common.serialization.Serializer as KSerializer
-
-import java.io.ByteArrayOutputStream
 import _root_.io.scalaland.chimney.dsl.*
 import _root_.io.scalaland.chimney.{ partial, PartialTransformer, Transformer }
-
-import fs2.kafka.vulcan.{avroSerializer}
-import fs2.kafka.vulcan.{Auth, AvroSettings, SchemaRegistryClientSettings}
-
-// import cats.effect.Sync
-import IO.asyncForIO
-// import SyncIO.syncForSyncIO
 
 object App extends IOApp:
 
@@ -129,52 +116,11 @@ object App extends IOApp:
                 case Dtos.Status.PENDING           => ad.Status.PENDING
                 case Dtos.Status.DELETED           => ad.Status.DELETED
 
-        val avroSettings =
-          AvroSettings {
-            SchemaRegistryClientSettings[IO]("http://localhost:18081")
-          }
-          // .withAutoRegisterSchemas(true)
-          .withAutoRegisterSchemas(false)
-          .withValueSubjectNameStrategy("registry.strategy.RecordSubjectStrategy")
-
-        val kser: IO[(KafkaAvroSerializer, SchemaRegistryClient)] = avroSettings.createAvroSerializer(false, Some(ad.Advertiser.getClassSchema()))
-        val ttA = for a <- kser yield a._1.asInstanceOf[KSerializer[SpecificRecord]]
-
         Injector[IO]().produceRun(mainModule ++ configModule):
             (
               httpServer: HttpServerResource,
-              handler: Handler[SpecificRecord],
+              producer: Producer[ProducerParams],
               ) =>
-                val streams = for {
-
-                      queue <-  Channel.unbounded[IO, SpecificRecord]
-                      tttt <- ttA
-                      
-                      producerSettings <- IO{ProducerSettings(                                       
-                                              keySerializer = Serializer[IO, String],
-                                              valueSerializer = Serializer.delegate(tttt),
-                                            )
-                                       .withBootstrapServers("localhost:19092")
-                       }
-                      _ <- IO(handler.queue = Some(queue))
-                      
-                      runningQueue <-   queue
-                              .stream
-                              // .covary[IO]
-                              .evalTap(ev => {
-                                IO.println(s"Got $ev")
-                              })
-                              .map {
-                                value =>
-                                    IO.println(s"EventStream =>>>>>>>>>>>> $value")
-                                    val record = ProducerRecord("campaigns.advertiser-update.v1", "key", value)
-                                    ProducerRecords.one(record)
-                             }
-                             .through(KafkaProducer.pipe(producerSettings))
-                             .compile
-                             .drain
-                       } yield runningQueue
-
                 val program: IO[Unit] =
                   for
                     _ <- httpServer.resource.use(
@@ -183,6 +129,6 @@ object App extends IOApp:
                          )
                   yield ()
 
-                program.as( ExitCode.Success) &> streams.as(ExitCode.Success)
+                program.as(ExitCode.Success) &> producer.init().as(ExitCode.Success)
 
     end run

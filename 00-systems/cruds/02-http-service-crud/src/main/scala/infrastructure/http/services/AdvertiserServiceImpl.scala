@@ -27,6 +27,8 @@ import infrastructure.http.transformers.AdvertisersTransformers.given
 import integration.serializers.*
 
 // import cats.effect.unsafe.implicits.global
+import _root_.main.Producer
+import _root_.main.ProducerParams
 
 import fs2.concurrent.Channel
 
@@ -34,7 +36,7 @@ import org.apache.avro.specific.SpecificRecord
 
 class AdvertiserServiceImpl(
                            repo: AdvertiserRepository[IO],
-                           handler: Option[Handler[SpecificRecord]] = None,
+                           handler: Option[Producer[ProducerParams]] = None,
                            logger: Option[IzLogger] = None) extends AdvertiserService[Result] {
 
   def getPersonById(id: String): Result[Person] = {
@@ -137,9 +139,8 @@ class AdvertiserServiceImpl(
       repositoryResult match
         case Right(Some(p)) =>
           handler match
-            case Some(h) => h.queue match
-                case Some(q) => q.send(ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE))
-                case None => IO{Left(Channel.Closed)}
+            case Some(h) => 
+                h.produce(ProducerParams("campaigns.advertiser-update.v1", "key", ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE)))
             case None => IO{Left(Channel.Closed)}
         case Right(None) => IO{Left(Channel.Closed)}
         case Left(value) => IO.raiseError(value)
@@ -168,9 +169,6 @@ class AdvertiserServiceImpl(
             repositoryResult match
               case Right(id) =>
                 // TODO: Report the ID of the created resource via Fafka
-                // logger.foreach(_.info(s"About to offer: '$id'"))
-                // logger.foreach(_.info(s"person saved: '$person'"))
-                // handler.map( h => h.queue.map(_.send(ad.Advertiser(id, ad.Status.ACTIVE)).unsafeRunAndForget()) )
                 Right(id)
 
               case Left(ex) =>
