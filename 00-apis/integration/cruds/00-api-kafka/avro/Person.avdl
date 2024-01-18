@@ -1,0 +1,9 @@
+
+@namespace("org.integration.avro.people")
+protocol People{
+    @subject("country.person-create.v1-value")
+    record Person{
+        long id;
+        string status;
+    }
+}

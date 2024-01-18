@@ -1,7 +1,7 @@
 package main
 
-import fs2.kafka.vulcan.avroSerializer
-import fs2.kafka.vulcan.{ Auth, AvroSettings, SchemaRegistryClientSettings }
+// import fs2.kafka.vulcan.avroSerializer
+// import fs2.kafka.vulcan.{ Auth, AvroSettings, SchemaRegistryClientSettings }
 import org.apache.avro.specific.SpecificRecord
 
 import _root_.io.confluent.kafka.serializers.KafkaAvroSerializer

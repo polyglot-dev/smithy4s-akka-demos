@@ -22,6 +22,7 @@ import infrastructure.resources.Handle
 import infrastructure.*
 
 import org.integration.avro.ad
+import org.integration.avro.people as pe
 
 import infrastructure.http.transformers.AdvertisersTransformers.given
 import integration.serializers.*
@@ -135,10 +136,9 @@ class AdvertiserServiceImpl(
         case Right(Some(p)) =>
           handler match
             case Some(h) =>
-              h.produce(ProducerParams("campaigns.advertiser-update.v1",
-                                       "key",
-                                       ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE)
-                                      ))
+              val x = ProducerParams("campaigns.advertiser-update.v1", "key", ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE))
+              // val x = ProducerParams("country.person-create.v1", "key", pe.Person(33L, p.name))
+              h.produce(x)
             case None    => IO { Left(Channel.Closed) }
         case Right(None)    => IO { Left(Channel.Closed) }
         case Left(value)    => IO.raiseError(value)
