@@ -30,7 +30,6 @@ import akka.cluster.typed.*
 import scala.concurrent.ExecutionContextExecutor
 
 import infrastructure.entities.PersonEntity
-import infrastructure.entities.PersonEntity2
 
 import infrastructure.entities.person.projections.PersonProjection
 
@@ -76,7 +75,6 @@ class DI(config: LocalConfig):
     val clusterModule =
       new ModuleDef:
           make[PersonSharding]
-          make[PersonSharding2]
 
     val servicesModule =
       new ModuleDef:
@@ -116,7 +114,6 @@ object RootBehaviorMainNode:
                           typedActorSystem: ActorSystem[Coordination.Command],
                           executionContext: ExecutionContextExecutor,
                           personSharding: PersonSharding,
-                          personSharding2: PersonSharding2,
                           grpcApi: GrpcApi,
                           grpcManagmentApi: GrpcManagmentApi,
                           personProjection: PersonProjection,
@@ -151,22 +148,11 @@ object RootBehaviorMainNode:
                                     PersistenceId(
                                       PersonEntity.typeKey.name,
                                       entityContext.entityId,
-                                    )
+                                    ),
+                                    entityContext.shard
                                   )
                               )
                             )
-
-                            // personSharding2.init(
-                            //   Entity(PersonEntity2.typeKey)(createBehavior =
-                            //     entityContext =>
-                            //       PersonEntity2(
-                            //         PersistenceId(
-                            //           PersonEntity2.typeKey.name,
-                            //           entityContext.entityId,
-                            //         )
-                            //       )
-                            //   )
-                            // )
 
                             if config.first then
                                 grpcApi.init().map(_.addToCoordinatedShutdown(hardTerminationDeadline =

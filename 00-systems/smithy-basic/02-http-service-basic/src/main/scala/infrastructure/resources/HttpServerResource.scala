@@ -1,6 +1,7 @@
 package infrastructure
 package resources
 
+import http.RequestInfo
 
 import org.http4s.implicits.*
 import org.http4s.ember.server.*
@@ -64,11 +65,14 @@ class SSLResource[IO[_]: Async: Network]{
 }
 
 class HttpServerResource(
-                           tlsResource : Resource[IO, TLSContext[IO]],
-                           logger: IzLogger)(using
+                           tlsResource: Resource[IO, TLSContext[IO]],
+                           logger: IzLogger,
+                           )(using
                            config: HttpServerConfig):
 
-    def resource: Resource[IO, Server] = ServerRoutes(Some(logger)).all
+    def resource(local: IOLocal[Option[RequestInfo]]): Resource[IO, Server] = 
+      
+      ServerRoutes(Some(logger)).getAll(local)
       .flatMap:
           routes =>
                 for {

@@ -65,13 +65,14 @@ object App extends IOApp:
             (
               httpServer: HttpServerResource) =>
 
-                val program: IO[Unit] =
+                val program: IO[Unit] =IOLocal(Option.empty[infrastructure.http.RequestInfo]).flatMap { local =>
                   for
-                    _ <- httpServer.resource.use(
+                    _ <- httpServer.resource(local).use(
                            (server: Server) =>
                              IO.never
                          )
                   yield ()
+                }
 
                 program.as(
                   ExitCode.Success

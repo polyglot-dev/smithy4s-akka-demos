@@ -17,3 +17,6 @@ object DataModel:
     // , status: Status = Status.active
 
     case class PersonUpdate(town: Option[String], address: Option[Address]) extends Model
+
+    // by default this is cents
+    case class Amount(value: Long, currency: String = "USD", exponent: Int = 2) extends Model

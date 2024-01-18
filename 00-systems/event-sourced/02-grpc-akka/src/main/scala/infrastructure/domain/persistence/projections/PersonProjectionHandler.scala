@@ -14,21 +14,26 @@ import scala.collection.immutable
 import akka.Done
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import org.slf4j.LoggerFactory
+import org.slf4j.{ Logger, LoggerFactory }
 
 import person.DataModel.*
-import infrastructure.entities.person.Events.*
+import infrastructure.entities.person.Events.{ Event as _, * }
 import io.r2dbc.postgresql.codec.Json
 
 import io.circe.*, io.circe.syntax.*, io.circe.parser.*, io.circe.generic.auto.*
 
-class PersonProjectionHandler()(using ec: ExecutionContext)
-    extends R2dbcHandler[immutable.Seq[EventEnvelope[entities.person.Events.Event]]]:
-    private val logger = LoggerFactory.getLogger(getClass)
+import akka.persistence.typed.EventAdapter
+import _root_.journal.infrastructure.entities.person.events as DataModel
+import infrastructure.entities.person.Events as DomainEvents
+
+class PersonProjectionHandler(
+                         )(using adapter: EventAdapter[DomainEvents.Event, DataModel.Event], ec: ExecutionContext)
+    extends R2dbcHandler[immutable.Seq[EventEnvelope[DataModel.Event]]]:
+    given logger: Logger = LoggerFactory.getLogger(getClass)
 
     override def process(
                         session: R2dbcSession,
-                        envelopes: immutable.Seq[EventEnvelope[entities.person.Events.Event]]): Future[Done] =
+                        envelopes: immutable.Seq[EventEnvelope[DataModel.Event]]): Future[Done] =
         // given R2dbcSession = session
 
         val groups = envelopes.groupBy(_.persistenceId)
@@ -90,8 +95,12 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
               val finalState = groups.map:
                   case (key, value) =>
                     val uuidKey = key.substring(PersonEntity.typeKey.name.length() + 1)
-                    val (head :: _, rest) = value.toList.splitAt(1): @unchecked
-                    head.event match
+                    val vvalue =
+                      value.map(
+                        e => adapter.fromJournal(e.event, "").events
+                      ).flatten
+                    val (head :: _, rest) = vvalue.toList.splitAt(1): @unchecked
+                    head match
                       case PersonCreated(name, town, address) =>
                         val p = PersonEntity.State(name, town, address)
                         newEntities += (uuidKey -> p)
@@ -101,10 +110,8 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
                       case ev @ PersonFixed(name, town, address) =>
                         updateEntity(uuidKey, getEntity(uuidKey).applyEvent(ev))
 
-                    val restEvents = rest.map(_.event)
-
                     (uuidKey,
-                     restEvents.foldLeft(getEntity(uuidKey))(
+                     rest.foldLeft(getEntity(uuidKey))(
                        (acc, ev) => acc.applyEvent(ev)
                      )
                     )
@@ -143,7 +150,7 @@ class PersonProjectionHandler()(using ec: ExecutionContext)
                                                                          ("address", addr)
                                                                         )
                         val fields = optionalFields.filter(_._2.isDefined)
-                        val fieldsNames = fields.map(_._1)
+                        // val fieldsNames = fields.map(_._1)
                         val expr = fields
                           .map(_._1)
                           .zipWithIndex

@@ -11,3 +11,4 @@ object Events:
     case class PersonCreated(name: String, town: Option[String], address: Option[Address])       extends Event
     case class PersonUpdated(town: Option[String], address: Option[Address])                     extends Event
     case class PersonFixed(name: Option[String], town: Option[String], address: Option[Address]) extends Event
+    case class Fixing(value: Boolean) extends Event

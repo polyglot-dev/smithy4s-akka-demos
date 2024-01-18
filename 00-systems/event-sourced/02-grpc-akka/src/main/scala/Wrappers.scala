@@ -7,7 +7,3 @@ import akka.actor.typed.ActorSystem
 class PersonSharding(using sys: ActorSystem[Nothing]):
     val sharding: ClusterSharding = ClusterSharding(sys)
     export sharding.*
-
-class PersonSharding2(using sys: ActorSystem[Nothing]):
-    val sharding: ClusterSharding = ClusterSharding(sys)
-    export sharding.*

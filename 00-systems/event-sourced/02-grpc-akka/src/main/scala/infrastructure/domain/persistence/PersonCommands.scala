@@ -18,3 +18,5 @@ object Commands:
     final case class CreatePersonCommand(person: Person, replyTo: ActorRef[Done | ResultError])       extends Command
     final case class UpdatePersonCommand(person: PersonUpdate, replyTo: ActorRef[Done | ResultError]) extends Command
     final case class GetPersonCommand(replyTo: ActorRef[Person | ResultError])                        extends Command
+    final case class StopPersonCommand(replyTo: ActorRef[Done | ResultError])                        extends Command
+    final case class StartPersonCommand(replyTo: ActorRef[Done | ResultError])                        extends Command

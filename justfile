@@ -14,9 +14,11 @@ alias dck8s-u := docker-compose-k8s-up
 alias dc-d := docker-compose-down
 alias clean-dd := clean-docker-compose-data
 
+[private]
 api-setup:
   sbt generateSmithyFromOpenApi
 
+[private]
 docker-compose-up-pre:
   #!/usr/bin/env bash
   set -euxo pipefail
@@ -49,6 +51,7 @@ drop-all:
     liquibase drop-all \
               --defaults-file=docker/postgres/liquibase.properties
 
+[private]
 docker-compose-down-pre:
   #!/usr/bin/env bash
   set -euxo pipefail
@@ -57,6 +60,7 @@ docker-compose-down-pre:
     rm {{postgres_sql_file}}
   fi
 
+[private]
 docker-compose-k8s-up:
   #!/usr/bin/env bash
   set -euxo pipefail
@@ -128,6 +132,11 @@ clean-docker-compose-data:
   mkdir -p docker/data/.kafka
   chmod -R 777 docker/data
 
+clean-kafka-data:
+  sudo rm -Rf docker/data/.kafka
+  mkdir -p docker/data/.kafka
+  chmod -R 777 docker/data/.kafka
+  
 crud:
   sbt -Dactive-app=crud-rest
 
@@ -149,6 +158,9 @@ event-sourced-grpc-run seconds_to_wait='0':
   sleep {{seconds_to_wait}}
   echo "Starting a cluster node using port $AKKA_CLUSTER_APP_PORT"
   sbt -Dactive-app=event-sourced-grpc -Dconfig.file=00-systems/event-sourced/02-grpc-akka/src/main/resources/application-dev.conf r
+
+#io.r2dbc.postgresql
+
 
 event-sourced-grpc:
   sbt -Dactive-app=event-sourced-grpc -Dconfig.file=00-systems/event-sourced/02-grpc-akka/src/main/resources/application-dev.conf
@@ -192,6 +204,7 @@ gen-keystore:
 rm-keystore:
   rm {{keystore_file}} || true
 
+[private]
 show:
   #!/usr/bin/env bash
   set -euxo pipefail
@@ -200,12 +213,14 @@ show:
   direnv reload
   echo $AKKA_CLUSTER_APP_PORT
 
+[private]
 generate-avros:
   rm -Rf 00-apis/integration/cruds/00-api-kafka-to-publish/avro
   mkdir -p 00-apis/integration/cruds/00-api-kafka-to-publish/avro
   avro-tools idl2schemata 00-apis/integration/cruds/00-api-kafka/avro/Advertiser.avdl 00-apis/integration/cruds/00-api-kafka-to-publish/avro
 
 # https://www.freecodecamp.org/news/sort-dictionary-by-value-in-python/#howtosortadictionarywiththesortedmethod
+[private]
 clean-avros: generate-avros
   #!/usr/bin/env python
 
@@ -224,6 +239,7 @@ clean-avros: generate-avros
     os.remove(filename)
     os.rename(filename + "_", filename)
 
+[private]
 grpcui-func-start port='8080':
   #!/usr/bin/env bash
   set -euxo pipefail
@@ -234,6 +250,7 @@ grpcui-func-start port='8080':
   path=$(sudo netstat -ltnp | grep -w $pid | awk '{print $4}')
   chrome "http://$path/"
 
+[private]
 grpcui-func-end port='8080':
   #!/usr/bin/env bash
   set -euxo pipefail

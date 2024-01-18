@@ -23,7 +23,16 @@ import akka.projection.ProjectionId
 import akka.projection.r2dbc.scaladsl.R2dbcProjection
 import services.Configs.PersonEntityConfig
 
-class PersonProjection()(using system: ActorSystem[Nothing], config: PersonEntityConfig):
+import akka.persistence.typed.EventAdapter
+import _root_.journal.infrastructure.entities.person.events as DataModel
+import infrastructure.entities.person.Events as DomainEvents
+
+class PersonProjection()
+                      (
+                        using system: ActorSystem[Nothing],
+                        config: PersonEntityConfig,
+                        // adapter: EventAdapter[DomainEvents.Event, DataModel.Event],
+    ):
 
     val logger: Logger = LoggerFactory.getLogger(getClass)
 
@@ -40,12 +49,14 @@ class PersonProjection()(using system: ActorSystem[Nothing], config: PersonEntit
 
     private def makeProjection(projectionTag: String, targetTag: String) =
         given ec: ExecutionContext = system.executionContext
-        val sourceProvider: SourceProvider[Offset, EventEnvelope[entities.person.Events.Event]] =
-          EventSourcedProvider.eventsByTag[entities.person.Events.Event](
-            system = system,
-            readJournalPluginId = CassandraReadJournal.Identifier,
-            tag = targetTag
-          )
+        given PersonDetachedModelsAdapter = new PersonDetachedModelsAdapter()
+        val sourceProvider: SourceProvider[Offset, EventEnvelope[DataModel.Event]] = EventSourcedProvider.eventsByTag[
+          DataModel.Event
+        ](
+          system = system,
+          readJournalPluginId = CassandraReadJournal.Identifier,
+          tag = targetTag
+        )
         R2dbcProjection
           .groupedWithin(
             ProjectionId(projectionTag, targetTag),

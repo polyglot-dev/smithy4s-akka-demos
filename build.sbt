@@ -37,6 +37,7 @@ lazy val commonSettings = Seq(
   dependencyOverrides ++= Seq(
   ),
   ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven"),
+  ThisBuild / resolvers += "Confluent Maven Repository".at("https://packages.confluent.io/maven/"),
   scalacOptions ++=
     Seq(
       "-explain",
@@ -295,6 +296,8 @@ lazy val crudHttpService = project
   .enablePlugins(JavaAppPackaging)
   .dependsOn(rest_crud)
   .dependsOn(avro_crud)
+  .aggregate(rest_crud)
+  .aggregate(avro_crud)
   .settings(commonSettings)
   .settings(
     scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
@@ -309,6 +312,7 @@ lazy val crudHttpService = project
     Compile / discoveredMainClasses := Seq(),
     libraryDependencies ++= Cruds.httpServiceDependencies ++ Seq(
       "com.github.fd4s" %% "fs2-kafka" % "3.2.0",
+      "com.github.fd4s" %% "fs2-kafka-vulcan" % "3.2.0",
     ),
   )
 

@@ -1,6 +1,7 @@
 package infrastructure
 package entities
 
+import person.PersonDetachedModelsAdapter
 import services.Configs.*
 
 import akka.serialization.jackson.CborSerializable
@@ -15,9 +16,17 @@ import akka.actor.typed.SupervisorStrategy
 import akka.persistence.typed.scaladsl.Effect
 import akka.Done
 
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import akka.actor.typed.ActorRef
+
 import util.person.EventsTags
 
-object PersonEntity extends PersonEntityCommon:
+import org.slf4j.{ Logger, LoggerFactory }
+import akka.actor.typed.scaladsl.ActorContext
+
+object PersonEntity:
+
+    given logger: Logger = LoggerFactory.getLogger(getClass)
 
     export person.DataModel.*
     export person.Commands.*
@@ -33,10 +42,12 @@ object PersonEntity extends PersonEntityCommon:
       name: String, 
       town: Option[String], 
       address: Option[Address],
+      isBeingFixed: Boolean = false,
     ) extends CborSerializable, 
-              PersonEntityCommon,
               PersonCommandHandler,
-              PersonEventHandler
+              PersonEventHandler,
+              PersonInRecoveryStateEventHandler,
+              PersonInRecoveryStateCommandHandler
 // format: on
 
     def onFirstCommand(cmd: Command): ReplyEffect =
@@ -51,7 +62,7 @@ object PersonEntity extends PersonEntityCommon:
           ).thenReply(replyTo)(
             _ => Done
           )
-        case default                                      =>
+        case default =>
           Effect
             .none
             .thenReply(default.replyTo)(
@@ -70,30 +81,35 @@ object PersonEntity extends PersonEntityCommon:
         case _                                      => throw new IllegalStateException(s"unexpected event [$event] in empthy state")
 
     def apply
-      (persistenceId: PersistenceId)(using config: PersonEntityConfig)
+      (persistenceId: PersistenceId, shard: ActorRef[ClusterSharding.ShardCommand])(using config: PersonEntityConfig)
       : Behavior[Command] = Behaviors.setup[Command]:
-        context =>
+        given ActorRef[ClusterSharding.ShardCommand] = shard
+        (context: ActorContext[Command]) =>
+            given ActorContext[Command] = context
             EventSourcedBehavior.withEnforcedReplies[Command, Event, Option[State]](
               persistenceId,
               None,
               (state, cmd) =>
                 state match {
-                  case None         => onFirstCommand(cmd)
-                  case Some(person) => person.applyCommand(cmd)
+                  case None                                 => onFirstCommand(cmd)
+                  case Some(person @ State(_, _, _, false)) => person.applyCommand(cmd)
+                  case Some(person @ State(_, _, _, true))  => person.applyCommandInRecovery(cmd)
                 },
               (state, event) =>
                 state match {
-                  case None         => Some(onFirstEvent(event))
-                  case Some(person) => Some(person.applyEvent(event))
+                  case None                                 => Some(onFirstEvent(event))
+                  case Some(person @ State(_, _, _, false)) => Some(person.applyEvent(event))
+                  case Some(person @ State(_, _, _, true))  => Some(person.applyEventInRecovery(event))
                 }
             )
               .withTagger:
                   case _: PersonCreated => Set(EventsTags.PersonCreated.value, EventsTags.PersonCreateUpdated.value)
                   case _: PersonUpdated => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
                   case _: PersonFixed   => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
+                  case _ => Set()
               .snapshotWhen {
-                 case (state, _, sequenceNumber) => true
-                }
+                case (state, _, sequenceNumber) => true
+              }
               .withRetention(
                 RetentionCriteria
                   .snapshotEvery(
@@ -107,90 +123,4 @@ object PersonEntity extends PersonEntityCommon:
                   randomFactor = config.restartRandomFactor
                 )
               )
-            // .eventAdapter()
-
-object PersonEntity2:
-
-    export person.DataModel.*
-    export person.Commands.*
-    export person.Events.*
-    import util.*
-
-    val typeKey: EntityTypeKey[Command] = EntityTypeKey[Command]("person")
-
-    type ReplyEffect = akka.persistence.typed.scaladsl.ReplyEffect[Event, Option[State]]
-
-// format: off
-    case class State(
-      name: String, 
-      town: Option[String], 
-      address: Option[Address],
-    ) extends CborSerializable, 
-              PersonCommandHandler2,
-              PersonEventHandler2
-// format: on
-
-    def onFirstCommand(cmd: Command): ReplyEffect =
-      cmd match
-        case CreatePersonCommand(person: Person, replyTo) =>
-          Effect.persist(
-            PersonCreated(
-              person.name,
-              person.town,
-              person.address,
-            )
-          ).thenReply(replyTo)(
-            _ => Done
-          )
-        case default                                      =>
-          Effect
-            .none
-            .thenReply(default.replyTo)(
-              _ =>
-                ResultError(
-                  TransportError.NotFound,
-                  "Person do not exists"
-                )
-            )
-
-    def onFirstEvent(event: Event): State =
-      event match
-        case PersonCreated(name, town, address) => State(name, town, address)
-        case _                                  => throw new IllegalStateException(s"unexpected event [$event] in empthy state")
-
-    def apply
-      (persistenceId: PersistenceId)(using config: PersonEntityConfig)
-      : Behavior[Command] = Behaviors.setup[Command]:
-        context =>
-            EventSourcedBehavior.withEnforcedReplies[Command, Event, Option[State]](
-              persistenceId,
-              None,
-              (state, cmd) =>
-                state match {
-                  case None         => onFirstCommand(cmd)
-                  case Some(person) => person.applyCommand(cmd)
-                },
-              (state, event) =>
-                state match {
-                  case None         => Some(onFirstEvent(event))
-                  case Some(person) => Some(person.applyEvent(event))
-                }
-            )
-              .withTagger:
-                  case _: PersonCreated => Set(EventsTags.PersonCreated.value, EventsTags.PersonCreateUpdated.value)
-                  case _: PersonUpdated => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
-                  case _: PersonFixed   => Set(EventsTags.PersonUpdated.value, EventsTags.PersonCreateUpdated.value)
-              .withRetention(
-                RetentionCriteria
-                  .snapshotEvery(
-                    numberOfEvents = config.snapshotNumberOfEvents,
-                    keepNSnapshots = config.snapshotKeepNsnapshots
-                  )
-              ).onPersistFailure(
-                SupervisorStrategy.restartWithBackoff(
-                  minBackoff = config.restartMinBackoff,
-                  maxBackoff = config.restartMaxBackoff,
-                  randomFactor = config.restartRandomFactor
-                )
-              )
-            // .eventAdapter()
+              .eventAdapter(new PersonDetachedModelsAdapter())

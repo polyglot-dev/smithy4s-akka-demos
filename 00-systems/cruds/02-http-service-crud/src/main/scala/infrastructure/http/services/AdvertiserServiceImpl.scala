@@ -21,13 +21,20 @@ import TypesConversion.*
 import infrastructure.resources.Handle
 import infrastructure.*
 
+import org.integration.avro.ad
 
 import infrastructure.http.transformers.AdvertisersTransformers.given
 import integration.serializers.*
 
+// import cats.effect.unsafe.implicits.global
+
+import fs2.concurrent.Channel
+
+import org.apache.avro.specific.SpecificRecord
+
 class AdvertiserServiceImpl(
                            repo: AdvertiserRepository[IO],
-                           handler: Option[Handler[Dtos.Advertiser]] = None,
+                           handler: Option[Handler[SpecificRecord]] = None,
                            logger: Option[IzLogger] = None) extends AdvertiserService[Result] {
 
   def getPersonById(id: String): Result[Person] = {
@@ -116,7 +123,6 @@ class AdvertiserServiceImpl(
     ).toResult
   }
 
-  import cats.effect.unsafe.implicits.global
 
   def createPerson(body: Person): Result[Long] = {
     logger.foreach(_.info(s"Service, creating advertiser: '$body'"))
@@ -127,6 +133,28 @@ class AdvertiserServiceImpl(
       yield Tuple1(person)
     }
 
+    def send2(repositoryResult: Either[Throwable, Option[domain.data.Person]]): IO[Either[Channel.Closed, Unit]] = {
+      repositoryResult match
+        case Right(Some(p)) =>
+          handler match
+            case Some(h) => h.queue match
+                case Some(q) => q.send(ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE))
+                case None => IO{Left(Channel.Closed)}
+            case None => IO{Left(Channel.Closed)}
+        case Right(None) => IO{Left(Channel.Closed)}
+        case Left(value) => IO.raiseError(value)
+    }
+    
+    def send(repositoryResult: Either[Throwable, Long]): IO[Either[Channel.Closed, Unit]] = {
+            repositoryResult match
+              case Right(id) =>
+                for 
+                  i <- repo.getPersonById(id) 
+                  r <- send2(i)
+                yield r
+              case Left(value) => IO.raiseError(value)
+    }
+    
     validatePreconditions.fold(
       error => error.toResult,
       {
@@ -135,13 +163,14 @@ class AdvertiserServiceImpl(
               repositoryResult <- repo.savePerson(person)
               // IO[Either[Throwable, Long]]
               // repositoryResult <- IO[Either[Throwable, Long]]{Right(2L)}
+              _ <- send(repositoryResult)
           yield {
             repositoryResult match
               case Right(id) =>
                 // TODO: Report the ID of the created resource via Fafka
                 // logger.foreach(_.info(s"About to offer: '$id'"))
-                logger.foreach(_.info(s"person saved: '$person'"))
-                // handler.queue.map(_.send(Dtos.Advertiser(id, Dtos.Status.ACTIVE)).unsafeRunAndForget())
+                // logger.foreach(_.info(s"person saved: '$person'"))
+                // handler.map( h => h.queue.map(_.send(ad.Advertiser(id, ad.Status.ACTIVE)).unsafeRunAndForget()) )
                 Right(id)
 
               case Left(ex) =>

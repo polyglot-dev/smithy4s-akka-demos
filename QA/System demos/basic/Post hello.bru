@@ -5,11 +5,31 @@ meta {
 }
 
 post {
-  url: https://0.0.0.0:9006/person/pepe?town=granada
-  body: none
+  url: {{baseUrl}}/person/pepe?town=granada
+  body: json
   auth: none
 }
 
 query {
   town: granada
+}
+
+headers {
+  User-Agent: Chrome/103.0.0.0
+  Content-Type: application/json
+}
+
+auth:basic {
+  username: 
+  password: 
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  {
+    //"cosa": "eueu"
+  }
 }

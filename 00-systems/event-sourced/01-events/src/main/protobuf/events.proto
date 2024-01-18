@@ -16,7 +16,7 @@ option (scalapb.options) = {
   java_conversions: false
   // import: "com.thesamet.pb.MyType"
   import: "infrastructure.journal.*"
-  // preamble: "sealed trait BaseMessage"
+  preamble: "sealed trait Event extends JournalSerializable"
   // preamble: "sealed trait CommonMessage"
   lenses: true
   getters: true
@@ -30,33 +30,31 @@ option (scalapb.options) = {
 };
 
 message PersonCreated {
-  option (scalapb.message).extends = "JournalSerializable";
+  option (scalapb.message).extends = "Event";
   google.protobuf.StringValue name = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
   google.protobuf.StringValue town = 2;
   Address address = 3;
 }
 
 message Address {
-  option (scalapb.message).extends = "JournalSerializable";
   google.protobuf.StringValue street= 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
   google.protobuf.Int64Value no = 2 [(scalapb.field).no_box = true, (scalapb.field).required = true];
 }
 
 message PersonUpdated {
-  option (scalapb.message).extends = "JournalSerializable";
+  option (scalapb.message).extends = "Event";
   google.protobuf.StringValue town = 2;
   Address address = 3;
 }
 
 message PersonFixed{
-  option (scalapb.message).extends = "JournalSerializable";
+  option (scalapb.message).extends = "Event";
   google.protobuf.StringValue name = 1;
   google.protobuf.StringValue town = 2;
   Address address = 3;
 }
 
-    // case class PersonCreated(name: String, town: Option[String], address: Option[Address])         extends Event
-
-    // case class PersonUpdated(name: Option[String], town: Option[String], address: Option[Address]) extends Event
-
-    // case class Address(street: String, no: Int) extends Model
+message Fixing{
+  option (scalapb.message).extends = "Event";
+  google.protobuf.BoolValue value = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+}

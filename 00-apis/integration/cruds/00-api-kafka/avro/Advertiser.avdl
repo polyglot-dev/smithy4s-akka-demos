@@ -1,12 +1,11 @@
 
 @namespace("org.integration.avro.ad")
-@subject("advertiser")
 protocol AdvertiserIntegration{
     enum Status{
       ACTIVE, INACTIVE, PENDING, DELETED
     }
 
-    @subject("campaigns.advertiser-update.v1")
+    @subject("campaigns.advertiser-update.v1-value")
     record Advertiser{
         long id;
         Status status;

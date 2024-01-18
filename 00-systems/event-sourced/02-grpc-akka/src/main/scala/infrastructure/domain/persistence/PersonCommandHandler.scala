@@ -4,15 +4,20 @@ package entities
 import akka.persistence.typed.scaladsl.Effect
 import akka.Done
 
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+import akka.actor.typed.ActorRef
+
 import person.DataModel.*
 import person.Commands.*
 import person.Events.*
 import util.*
 
+import akka.actor.typed.scaladsl.ActorContext
+
 trait PersonCommandHandler:
     this: PersonEntity.State =>
 
-    def applyCommand(cmd: Command): PersonEntity.ReplyEffect =
+    def applyCommand(cmd: Command)(using shard: ActorRef[ClusterSharding.ShardCommand], ctx: ActorContext[Command]): PersonEntity.ReplyEffect =
       cmd match
 
         case UpdatePersonCommand(PersonUpdate(None, None), replyTo) =>
@@ -33,6 +38,17 @@ trait PersonCommandHandler:
             Person(name, town, address)
           )
 
+        case StopPersonCommand(replyTo) =>
+          shard ! ClusterSharding.Passivate(ctx.self)
+          Effect.persist(Fixing(true)).thenReply(replyTo)(
+            _ => Done
+          )
+
+        case StartPersonCommand(replyTo) =>
+          Effect.persist(Fixing(false)).thenReply(replyTo)(
+            _ => Done
+          )
+
         case CreatePersonCommand(p: Person, replyTo) =>
           Effect.reply(replyTo)(
             ResultError(
@@ -41,10 +57,10 @@ trait PersonCommandHandler:
             )
           )
 
-trait PersonCommandHandler2:
-    this: PersonEntity2.State =>
+trait PersonInRecoveryStateCommandHandler:
+    this: PersonEntity.State =>
 
-    def applyCommand(cmd: Command): PersonEntity2.ReplyEffect =
+    def applyCommandInRecovery(cmd: Command): PersonEntity.ReplyEffect =
       cmd match
         case UpdatePersonCommand(p: PersonUpdate, replyTo) =>
           Effect.persist(PersonUpdated(p.town, p.address)).thenReply(replyTo)(
@@ -56,6 +72,16 @@ trait PersonCommandHandler2:
             Person(name, town, address)
           )
 
+        case StopPersonCommand(replyTo) =>
+          Effect.persist(Fixing(true)).thenReply(replyTo)(
+            _ => Done
+          )
+
+        case StartPersonCommand(replyTo) =>
+          Effect.persist(Fixing(false)).thenReply(replyTo)(
+            _ => Done
+          )
+          
         case CreatePersonCommand(p: Person, replyTo) =>
           Effect.reply(replyTo)(
             ResultError(

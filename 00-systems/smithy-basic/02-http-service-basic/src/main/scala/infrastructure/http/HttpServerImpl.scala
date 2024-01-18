@@ -34,20 +34,32 @@ type Result2[A] = EitherT[IO, SmithyModelErrors2, IO[A]]
 //         def hello(name: String, town: Option[String]): Result[IO, Greeting]= ???
              
 // }
+
+case class RequestInfo(
+  // contentType: String, userAgent: String, 
+userId: Option[String])
     
 class HttpServerImpl2(
                        logger: Option[IzLogger],
+                       requestInfo: IO[RequestInfo],
                        )
     extends HelloWorldService[Result]{
 
+        // https://0.0.0.0:9006/person/pepe?town=granada
         def hello(name: String, town: Option[String]): Result[Greeting]= 
           logger.foreach(_.info(s"Hello $name from $town!"))
         
           // throw new Exception("Error =====")
           // throw ServiceUnavailableError("", "",  "Error =====")
         
-          EitherT(IO{Left(NotFoundError("404", "Not Found", "Not Found"))})
-          // EitherT(IO{Right(Greeting(s"Hello $name from $town!"))})
+          // EitherT(IO{Left(NotFoundError("404", "Not Found", "Not Found"))})
+          EitherT(IO{Right(Greeting(s"Hello $name from $town! (Result)"))})
+
+          val response = requestInfo.flatMap { (reqInfo: RequestInfo) =>
+            IO.println("REQUEST_INFO: " + reqInfo)
+              .as(Right(Greeting(s"Hello $name from $town! (IO)")))
+          }
+          EitherT(response)
              
 }
 
@@ -69,15 +81,21 @@ object Converter:
 
 class HttpServerImpl(
                        logger: Option[IzLogger],
+                       requestInfo: IO[RequestInfo],
                        )
     extends HelloWorldService[IO], CommonHTTP(logger){
 
         def hello(name: String, town: Option[String]): IO[Greeting] = 
 
-          logger.foreach(_.info(s"Hello $name from $town!"))
+          logger.foreach(_.info(s"Hello $name from $town! (IO)"))
 
-          val response = IO.pure{Greeting(s"Hello $name from $town!")}
-             
+          // val response = IO.pure{Greeting(s"Hello $name from $town! (IO)")}
+
+          val response = requestInfo.flatMap { (reqInfo: RequestInfo) =>
+            IO.println("REQUEST_INFO: " + reqInfo)
+              .as(Greeting(s"Hello $name from $town! (IO)"))
+          }
+
           response.handleErrorWith(
             errorHandler
           )

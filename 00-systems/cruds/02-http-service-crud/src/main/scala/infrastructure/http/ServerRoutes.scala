@@ -21,7 +21,10 @@ import java.util.UUID
 import smithy4s.http4s.SimpleRestJsonBuilder
 import org.http4s.dsl.io.*
 
+import infrastructure.http.ErrorsBuilder.internalServerError
+
 import smithy4s.kinds.PolyFunction
+// import smithy4s.PayloadError
 
 import logstage.IzLogger
 
@@ -69,6 +72,48 @@ class ServerRoutes(
         service,
         logger,
       ).transform(Converter.toIO))
+
+        .mapErrors {
+
+          case HttpPayloadError(_, expected, message) =>
+            logger.foreach(_.error(s"${message}"))
+            val e = ErrorsBuilder.badRequestError(s"Related to $expected, comment: ${translateMessage(message)}")
+            smError.BadRequestError(e.code, e.title, e.message)
+
+          case e: ServiceUnavailable =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.ServiceUnavailableError(e.code, e.title, e.message)
+
+          case e: Conflict =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.ConflictError(e.code, e.title, e.message)
+
+          case e: BadRequest =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.BadRequestError(e.code, e.title, e.message)
+
+          case e: NotFound =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.NotFoundError(e.code, e.title, e.message)
+
+          case e: InternalServer =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.InternalServerError(e.code, e.title, e.message)
+
+          case e: Unauthorized =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.UnauthorizedError(e.code, e.title, e.message)
+
+          case e: Forbidden =>
+            logger.foreach(_.error(s"${e.message}"))
+            smError.ForbiddenError(e.code, e.title, e.message)
+
+          case err: Throwable =>
+            logger.foreach(_.error(s"${err}"))
+            val e = internalServerError(err.getMessage())
+            smError.InternalServerError(e.code, e.title, e.message)
+
+        }
         // .mapErrors {
         //   case e @ HttpPayloadError(_, expected, message) =>
         //     // Throwable
