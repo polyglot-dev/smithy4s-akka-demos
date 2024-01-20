@@ -21,6 +21,7 @@ api-setup:
 run-migrations:
     liquibase update --defaults-file=docker/cassandra/liquibase.properties
     liquibase update --defaults-file=docker/postgres/liquibase.properties
+    liquibase update --defaults-file=docker/postgres/liquibase-test.properties
 
 truncate-all:
     liquibase execute-sql \

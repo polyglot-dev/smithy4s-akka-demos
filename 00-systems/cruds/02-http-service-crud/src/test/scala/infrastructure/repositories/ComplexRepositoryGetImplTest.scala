@@ -31,7 +31,7 @@ class ComplexRepositoryGetImplTestSuite extends CatsEffectSuite with CommonRepos
 
       override def afterEach(context: AfterEach): Unit = {
         sql"delete from advertiser where true; delete from campaign where true".update.run.transact(xa).unsafeRunSync()
-        sql"ALTER SEQUENCE person_id_seq RESTART WITH 1".update.run.transact(xroot).unsafeRunSync()
+        sql"ALTER SEQUENCE person_id_seq RESTART WITH 1".update.run.transact(xa).unsafeRunSync()
       }
 
     }
