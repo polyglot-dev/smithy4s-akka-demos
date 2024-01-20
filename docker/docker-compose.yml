@@ -1,7 +1,7 @@
 services:
   postgres-db:
     profiles: ["linux"]
-    image: postgres:15.4-alpine3.18
+    image: postgres:16.1-alpine3.19
     command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     ports:
       - "5432:5432"
@@ -13,7 +13,7 @@ services:
 
   postgres-db-mac:
     profiles: ["macos"]
-    image: postgres:15.4
+    image: postgres:16.1
     ports:
       - "5432:5432"
     volumes:

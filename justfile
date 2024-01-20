@@ -18,27 +18,9 @@ alias clean-dd := clean-docker-compose-data
 api-setup:
   sbt generateSmithyFromOpenApi
 
-[private]
-docker-compose-up-pre:
-  #!/usr/bin/env bash
-  set -euxo pipefail
-
-  if [[ ! -d "{{postgres_data_dir}}" ]]; then
-    cat docker/postgres/ddls/create-user.sql \
-        docker/postgres/ddls/create-db.sql \
-        docker/postgres/ddls/create-test-db.sql > {{postgres_sql_file}}
-  fi
-
 run-migrations:
     liquibase update --defaults-file=docker/cassandra/liquibase.properties
     liquibase update --defaults-file=docker/postgres/liquibase.properties
-    liquibase execute-sql \
-              --sql-file=docker/postgres/ddls/grant-permissions.sql \
-              --defaults-file=docker/postgres/liquibase.properties
-    liquibase update --defaults-file=docker/postgres/liquibase-test.properties
-    liquibase execute-sql \
-              --sql-file=docker/postgres/ddls/grant-permissions.sql \
-              --defaults-file=docker/postgres/liquibase-test.properties
 
 truncate-all:
     liquibase execute-sql \
@@ -52,21 +34,12 @@ drop-all:
               --defaults-file=docker/postgres/liquibase.properties
 
 [private]
-docker-compose-down-pre:
-  #!/usr/bin/env bash
-  set -euxo pipefail
-
-  if [[ -f "{{postgres_sql_file}}" ]]; then
-    rm {{postgres_sql_file}}
-  fi
-
-[private]
 docker-compose-k8s-up:
   #!/usr/bin/env bash
   set -euxo pipefail
   just docker-compose-up microk8s
 
-docker-compose-up environment='local': docker-compose-up-pre
+docker-compose-up environment='local': 
   #!/usr/bin/env bash
   set -euxo pipefail
 
@@ -104,7 +77,7 @@ docker-compose-up environment='local': docker-compose-up-pre
     just run-migrations
   fi
 
-docker-compose-down: docker-compose-down-pre
+docker-compose-down:
   #!/usr/bin/env bash
   set -euxo pipefail
 

@@ -24,7 +24,7 @@ class ProducerImpl(handler: Handler[ProducerParams]) extends Producer[ProducerPa
 
     val kafkaAvroSerDeConfig = Map[String, Any](
       AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG -> "http://localhost:18081",
-      AbstractKafkaAvroSerDeConfig.AUTO_REGISTER_SCHEMAS -> false.toString,
+      // AbstractKafkaAvroSerDeConfig.AUTO_REGISTER_SCHEMAS -> false.toString,
       AbstractKafkaAvroSerDeConfig.VALUE_SUBJECT_NAME_STRATEGY -> "registry.strategy.RecordSubjectStrategy"
     )
 

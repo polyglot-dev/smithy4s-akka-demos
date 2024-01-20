@@ -34,8 +34,8 @@ trait CommonRepositoryContext {
     Transactor.fromDriverManager[IO](
       driver = "org.postgresql.Driver",
       url = config.getString("hikariTransactor.url"),
-      user = "postgres",
-      password = "pass",
+      user = "duser",
+      password = "dpass",
       logHandler = None
     )
   }

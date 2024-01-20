@@ -313,7 +313,6 @@ lazy val crudHttpService = project
     libraryDependencies ++= Cruds.httpServiceDependencies ++ Seq(
       "com.github.fd4s" %% "fs2-kafka"              % "3.2.0",
        "io.confluent"    % "kafka-avro-serializer"  % "7.5.3",
-      // "com.github.fd4s" %% "fs2-kafka-vulcan" % "3.2.0",
     ),
   )
 
