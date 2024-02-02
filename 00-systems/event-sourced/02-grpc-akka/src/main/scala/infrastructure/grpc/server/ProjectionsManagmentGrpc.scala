@@ -54,7 +54,7 @@ trait ProjectionsManagmentGrpc(
         val projectionId = ProjectionId(in.id.projectionTag, in.id.targetTag)
         val res: Future[Done] = ProjectionManagement(system).clearOffset(projectionId)
         res.map(
-          _ => Response(Some("Ok"))
+          _ => Response("Ok")
         )
 
     def projectionUpdateOffset(in: ProjectionUpdateOffsetRequest, metadata: Metadata): Future[Response] =
@@ -65,7 +65,7 @@ trait ProjectionsManagmentGrpc(
           case None    => Done
         }
         res.map(
-          _ => Response(Some("Ok"))
+          _ => Response("Ok")
         )
 
     def projectionPause(in: ProjectionIdRequest, metadata: Metadata): Future[Response] =
@@ -73,7 +73,7 @@ trait ProjectionsManagmentGrpc(
         val mgmt = ProjectionManagement(system)
         val res = mgmt.pause(projectionId)
         res.map(
-          _ => Response(Some("Ok"))
+          _ => Response("Ok")
         )
 
     def projectionResume(in: ProjectionIdRequest, metadata: Metadata): Future[Response] =
@@ -81,7 +81,7 @@ trait ProjectionsManagmentGrpc(
         val mgmt = ProjectionManagement(system)
         val res = mgmt.resume(projectionId)
         res.map(
-          _ => Response(Some("Ok"))
+          _ => Response("Ok")
         )
 
     def projectionGetOffset(in: ProjectionIdRequest, metadata: Metadata): Future[OffsetResponse] =

@@ -79,4 +79,4 @@ trait EventsManagmentGrpc(
           .take(5) // List[String]
           .foreach(println) // Unit
         // ???
-        Future { Response(Some("Ok")) }(using system.executionContext)
+        Future { Response("Ok") }(using system.executionContext)

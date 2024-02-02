@@ -45,9 +45,9 @@ object PersonEntity:
       isBeingFixed: Boolean = false,
     ) extends CborSerializable, 
               PersonCommandHandler,
-              PersonEventHandler,
-              PersonInRecoveryStateEventHandler,
-              PersonInRecoveryStateCommandHandler
+              PersonEventHandler//,
+//              PersonInRecoveryStateEventHandler,
+//              PersonInRecoveryStateCommandHandler
 // format: on
 
     def onFirstCommand(cmd: Command): ReplyEffect =
@@ -78,7 +78,7 @@ object PersonEntity:
         case e @ PersonCreated(name, town, address) =>
           logger.info(s"PersonCreated: $e")
           State(name, town, address)
-        case _                                      => throw new IllegalStateException(s"unexpected event [$event] in empthy state")
+        case _                                      => throw new IllegalStateException(s"unexpected event [$event] in empty state")
 
     def apply
       (persistenceId: PersistenceId, shard: ActorRef[ClusterSharding.ShardCommand])(using config: PersonEntityConfig)
@@ -92,14 +92,14 @@ object PersonEntity:
               (state, cmd) =>
                 state match {
                   case None                                 => onFirstCommand(cmd)
-                  case Some(person @ State(_, _, _, false)) => person.applyCommand(cmd)
-                  case Some(person @ State(_, _, _, true))  => person.applyCommandInRecovery(cmd)
+                  case Some(person @ State(_, _, _, _)) => person.applyCommand(cmd)
+//                  case Some(person @ State(_, _, _, true))  => person.applyCommandInRecovery(cmd)
                 },
               (state, event) =>
                 state match {
                   case None                                 => Some(onFirstEvent(event))
-                  case Some(person @ State(_, _, _, false)) => Some(person.applyEvent(event))
-                  case Some(person @ State(_, _, _, true))  => Some(person.applyEventInRecovery(event))
+                  case Some(person @ State(_, _, _, _)) => Some(person.applyEvent(event))
+//                  case Some(person @ State(_, _, _, true))  => Some(person.applyEventInRecovery(event))
                 }
             )
               .withTagger:

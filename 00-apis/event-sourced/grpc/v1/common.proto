@@ -19,8 +19,12 @@ option (scalapb.options) = {
 
 message Request {}
 
+message StopEntityRequest {
+  google.protobuf.StringValue entityId= 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
+}
+
 message Response {
-  google.protobuf.StringValue message = 1;
+  google.protobuf.StringValue message = 1 [(scalapb.field).no_box = true, (scalapb.field).required = true];
 }
 
 message BadRequestError{

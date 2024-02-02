@@ -1,0 +1,18 @@
+meta {
+  name: transfer
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/payments/transfer
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "amount": 0,
+    "to": 0
+  }
+}

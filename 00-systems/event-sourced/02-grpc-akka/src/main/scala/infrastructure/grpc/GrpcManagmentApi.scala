@@ -36,7 +36,9 @@ import com.google.rpc.Code
 import infrastructure.ProtobufErrorsBuilder.*
 // import GRPCServerImpl
 
-class GrpcManagmentApi(
+import services.person.PersonService
+
+class GrpcManagmentApi(personService: PersonService)(
                     using sys: ActorSystem[Nothing],
                     config: GrpcManagmentConfig):
 
@@ -73,7 +75,7 @@ class GrpcManagmentApi(
     def init(): Future[ServerBinding] =
         val service: HttpRequest => Future[HttpResponse] = akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(
           ManagmentServicePowerApiHandler.partial(
-            implementation = ManagmentGRPCServerImpl(),
+            implementation = ManagmentGRPCServerImpl(personService),
             eHandler = eHandler
           ),
           akka.grpc.scaladsl.ServerReflection.partial(List(ManagmentService))

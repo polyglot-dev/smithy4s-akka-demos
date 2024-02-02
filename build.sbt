@@ -155,6 +155,18 @@ lazy val root = project
     else
       dummy
   )
+  .dependsOn(
+    if (sysPropOrDefault("active-app", "crud-akka-kafka-consumer") == "crud-akka-kafka-consumer")
+      crudAkkaConsumerService
+    else
+      dummy
+  )
+  .aggregate(
+    if (sysPropOrDefault("active-app", "crud-akka-kafka-consumer") == "crud-akka-kafka-consumer")
+      crudAkkaConsumerService
+    else
+      dummy
+  )
 
 // Tracing
 lazy val tracingHttpService = project
@@ -311,9 +323,33 @@ lazy val crudHttpService = project
     Compile / mainClass := Some("main.App"),
     Compile / discoveredMainClasses := Seq(),
     libraryDependencies ++= Cruds.httpServiceDependencies ++ Seq(
-      "com.github.fd4s" %% "fs2-kafka"              % "3.2.0",
-       "io.confluent"    % "kafka-avro-serializer"  % "7.5.3",
+      "com.github.fd4s" %% "fs2-kafka"             % "3.2.0",
+      "io.confluent"     % "kafka-avro-serializer" % "7.5.3",
     ),
+  )
+
+lazy val crudAkkaConsumerService = project
+  .in(file("00-systems/cruds/02-akka-service-crud-consumer"))
+  .enablePlugins(JavaAppPackaging)
+  .dependsOn(api_rest_avro_artifact)
+  .aggregate(api_rest_avro_artifact)
+  .settings(
+    Compile / run / fork := true,
+    scalacOptions += autoImportSettingsCommon.mkString(start = "-Yimports:", sep = ",", end = ""),
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    Compile / mainClass := Some("main.App"),
+    Compile / discoveredMainClasses := Seq(),
+  )
+  .settings(commonSettings)
+  .settings(
+    Seq(
+      libraryDependencies ++= Akka.grpcAkkaDependencies ++ Seq(
+        //  "com.google.protobuf" % "protobuf-java-util" % "3.25.0",
+        "io.confluent" % "kafka-avro-serializer" % "7.5.3",
+      )
+    )
   )
 
 lazy val avro_crud = project

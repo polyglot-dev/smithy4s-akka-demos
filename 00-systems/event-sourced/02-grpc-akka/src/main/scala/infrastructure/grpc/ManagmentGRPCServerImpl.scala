@@ -3,14 +3,15 @@ package grpc
 
 import scala.concurrent.ExecutionContextExecutor
 import akka.actor.typed.ActorSystem
+import services.person.PersonService
+import api.event_sourced.managment.grpc.*
+import _root_.infrastructure.grpc.EntitiesManagmentGrpc
 
 import services.person.PersonService
-
-import api.event_sourced.managment.grpc.*
-
-class ManagmentGRPCServerImpl(
+class ManagmentGRPCServerImpl(personService: PersonService)(
                              using system: ActorSystem[Nothing])
     extends ManagmentServicePowerApi,
       CommonGrpc(),
       ProjectionsManagmentGrpc(),
-      EventsManagmentGrpc()
+      EventsManagmentGrpc(),
+      EntitiesManagmentGrpc(personService)(using system.executionContext)

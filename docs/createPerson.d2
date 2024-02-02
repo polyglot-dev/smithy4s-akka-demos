@@ -1,0 +1,5 @@
+...@models.commands
+shape: sequence_diagram
+grpcServer -> pService: createPerson
+pService -> pSharding: CreatePerson Command
+pSharding -> pEntity: CreatePerson Command

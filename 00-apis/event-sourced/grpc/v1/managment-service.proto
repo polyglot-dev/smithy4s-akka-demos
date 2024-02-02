@@ -30,6 +30,7 @@ option (scalapb.options) = {
   scala3_sources: true
 };
 
+//  service ManagementService {
 service ManagmentService {
     rpc projectionClearOffset(ProjectionIdRequest) returns (api.common.Response) {}
     rpc projectionUpdateOffset(ProjectionUpdateOffsetRequest) returns (api.common.Response) {}
@@ -37,9 +38,10 @@ service ManagmentService {
     rpc projectionResume(ProjectionIdRequest) returns (api.common.Response) {}
     rpc projectionGetOffset(ProjectionIdRequest) returns (OffsetResponse) {}
     rpc projectionIsPaused(ProjectionIdRequest) returns (IsPausedResponse) {}
-    
+
     rpc eventsUpdateAll(EventsUpdateAllRequest) returns (api.common.Response) {}
-    
+    rpc stopEntity(api.common.StopEntityRequest) returns (api.common.Response) {}
+
 }
 
 message EventsUpdateAllRequest{}

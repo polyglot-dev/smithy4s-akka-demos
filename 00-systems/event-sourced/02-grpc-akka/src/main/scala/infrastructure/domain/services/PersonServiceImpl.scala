@@ -59,3 +59,12 @@ class PersonServiceImpl(personSharding: PersonSharding)
       .entityRefFor(PersonEntity.typeKey, id)
       .ask(PersonEntity.GetPersonCommand(_))
       .mapTo[Person | ResultError]
+
+    def stop(id: String): Future[Done | ResultError] = personSharding
+      .entityRefFor(PersonEntity.typeKey, id)
+      .ask(PersonEntity.StopPersonCommand(_))
+      .mapTo[Done | ResultError]
+    def start(id: String): Future[Done | ResultError] = personSharding
+      .entityRefFor(PersonEntity.typeKey, id)
+      .ask(PersonEntity.StartPersonCommand(_))
+      .mapTo[Done | ResultError]

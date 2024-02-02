@@ -15,7 +15,7 @@ object Dependencies {
     val akkaProjection       = "1.5.1"
     // val hikaryCP             = "4.0.3"
     val akkaPersistenceR2dbc = "1.2.1"
-    val doobie               = "1.0.0-RC4"
+    val doobie               = "1.0.0-RC5"
     val grpc                 = "1.56.0"
     val ducktape             = "0.1.11"
     val scalapbCommonProtos  = "2.9.6-0"
@@ -23,7 +23,7 @@ object Dependencies {
     val kafka                = "5.0.0"
     val fs2Kafka             = "3.2.0"
 
-    val izumi                = "1.1.0-M26"
+    val izumi                = "1.2.5"
     val akkaManagement       = "1.5.0"
     val http4s               = "0.23.18"
     val munitCatsEffect      = "2.0.0-M3"
@@ -111,7 +111,7 @@ object Dependencies {
     val circeOptics                = "io.circe"             %% "circe-optics"                   % V.circe
 
   }
-  
+
   object Tracing{
     val httpServiceDependencies = Seq(
       Libraries.doobieCore,
@@ -135,16 +135,16 @@ object Dependencies {
       "io.opentelemetry"                 % "opentelemetry-semconv"       % "1.30.1-alpha",
       "io.opentelemetry.instrumentation" % "opentelemetry-grpc-1.6"      % "1.31.0-alpha", // % "runtime"
     )
-    
+
     val grpcFs2Dependencies = Seq(
       Libraries.grpc,
       Libraries.grpcNettyShaded,
       Libraries.scalapbCommonProtos,
     )
-      
-      
+
+
   }
-  
+
   object Akka{
 
     val grpcAkkaDependencies = Seq(
@@ -193,9 +193,9 @@ object Dependencies {
     )
 
   }
-  
+
   object Cruds{
-    
+
     lazy val awsVersion = "2.21.0"
 
     val httpServiceDependencies = Seq(
@@ -223,7 +223,7 @@ object Dependencies {
       "software.amazon.awssdk"     % "s3-transfer-manager" % awsVersion,
       "software.amazon.awssdk.crt" % "aws-crt"             % "0.27.3",
     )
-      
+
   }
 
   object SmithyLibs{
@@ -234,9 +234,9 @@ object Dependencies {
     )
 
   }
-  
+
   object KafkaSupportLibs{
-    
+
     val interfaceLibsDependencies = Seq(
       Libraries.avroCompiler,
       Libraries.chimney,
@@ -244,7 +244,7 @@ object Dependencies {
       Libraries.chimneyJavaCollections,
     )
   }
-  
+
   object Basic{
     val httpServiceDependencies = Seq(
       Libraries.doobieCore,
@@ -257,14 +257,14 @@ object Dependencies {
       Libraries.izumiLogstageCirce,
       Libraries.izumiDistageExtension,
       Libraries.izumiLogstageSinkSlf4j,
-      
+
       Libraries.cats,
       Libraries.catsEffect,
       Libraries.fs2Core,
       Libraries.fs2IO,
       Libraries.fs2ReactiveStreams,
       Libraries.fs2Scodec,
-      
+
       Libraries.ducktape,
       Libraries.chimney,
       Libraries.http4s,

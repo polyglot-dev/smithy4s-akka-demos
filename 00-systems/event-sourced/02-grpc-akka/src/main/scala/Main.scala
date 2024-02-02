@@ -2,6 +2,7 @@ package main
 
 import infrastructure.services.*
 import Configs.*
+import infrastructure.entities.person
 
 // import akka.actor.typed.{ ActorSystem as TypedActorSystem }
 
@@ -50,10 +51,10 @@ import akka.management.scaladsl.AkkaManagement
 import akka.actor.typed.ActorRef
 import infrastructure.grpc.GrpcManagmentApi
 
+// format: off
 object DIConfigs:
 
     val configModule =
-      // format: off
       new ConfigModuleDef:
           makeConfig[GrpcConfig]          ("ports.grpc")
           makeConfig[GrpcManagmentConfig] ("ports.grpc-management")
@@ -62,9 +63,8 @@ object DIConfigs:
           makeConfig[LocalConfig]         ("local.config")
 
           makeConfig[PersonEntityConfig]("person")
-          // format: on
 
-          make[AppConfig].from(AppConfig(
+          make[AppConfig].from(AppConfig.provided(
             ConfigFactory
               .defaultApplication().getConfig("app").resolve()
           ))
@@ -79,15 +79,14 @@ class DI(config: LocalConfig):
     val servicesModule =
       new ModuleDef:
 
-          // format: off
           make[PersonService]         .from[PersonServiceImpl]
 
           make[GrpcApi]
           make[GrpcManagmentApi]
 
           make[PersonProjection]
-          // format: on
 
+// format: on
 object RootBehaviorMainNode:
 
     def apply(): Behavior[Coordination.Command] = Behaviors.setup[Coordination.Command]:
@@ -152,6 +151,7 @@ object RootBehaviorMainNode:
                                     entityContext.shard
                                   )
                               )
+//                                .withStopMessage(person.Commands.GoodByeCommand)
                             )
 
                             if config.first then

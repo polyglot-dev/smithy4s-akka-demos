@@ -114,6 +114,9 @@ clean-kafka-data:
 crud:
   sbt -Dactive-app=crud-rest
 
+kafka-consumer:
+  sbt -Dactive-app=crud-akka-kafka-consumer
+
 tracing-http:
   sbt -Dactive-app=tracing-http
 

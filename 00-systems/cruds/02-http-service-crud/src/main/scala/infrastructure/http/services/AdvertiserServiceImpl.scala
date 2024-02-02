@@ -132,6 +132,7 @@ class AdvertiserServiceImpl(
     }
 
     def send2(repositoryResult: Either[Throwable, Option[domain.data.Person]]): IO[Either[Channel.Closed, Unit]] = {
+      val resp = IO{Left(Channel.Closed)}
       repositoryResult match
         case Right(Some(p)) =>
           handler match
@@ -139,8 +140,8 @@ class AdvertiserServiceImpl(
               val x = ProducerParams("campaigns.advertiser-update.v1", "key", ad.Advertiser(p.name.length.toLong, ad.Status.ACTIVE))
               // val x = ProducerParams("country.person-create.v1", "key", pe.Person(33L, p.name))
               h.produce(x)
-            case None    => IO { Left(Channel.Closed) }
-        case Right(None)    => IO { Left(Channel.Closed) }
+            case None    => resp
+        case Right(None)    => resp
         case Left(value)    => IO.raiseError(value)
     }
 
