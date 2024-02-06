@@ -4,23 +4,23 @@ package person
 package projections
 
 import collection.mutable
+import scala.collection.immutable
 
 import akka.projection.eventsourced.EventEnvelope
 import akka.projection.r2dbc.scaladsl.R2dbcHandler
 import akka.projection.r2dbc.scaladsl.R2dbcSession
+
 import io.r2dbc.spi.Row
-import scala.collection.immutable
+import io.r2dbc.postgresql.codec.Json
 
 import akka.Done
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import org.slf4j.{ Logger, LoggerFactory }
+import io.circe.*, io.circe.syntax.*, io.circe.parser.*, io.circe.generic.auto.*
 
 import person.DataModel.*
 import infrastructure.entities.person.Events.{ Event as _, * }
-import io.r2dbc.postgresql.codec.Json
-
-import io.circe.*, io.circe.syntax.*, io.circe.parser.*, io.circe.generic.auto.*
 
 import akka.persistence.typed.EventAdapter
 import _root_.journal.infrastructure.entities.person.events as DataModel

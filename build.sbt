@@ -391,6 +391,27 @@ lazy val api_rest_avro_artifact = project
 
 // END ==== REST CRUD demo
 
+// Smithy Basic otelo
+lazy val basic_rest_otelo = project
+  .in(file("00-systems/smithy-basic/02-http-service-otelo"))
+  .enablePlugins(JavaAppPackaging)
+  .enablePlugins(Smithy4sCodegenPlugin)
+  .settings(commonSettings)
+  .settings(
+    scalacOptions += autoImportSettingsFs2.mkString(start = "-Yimports:", sep = ",", end = ""),
+    Compile / run / fork := true,
+    Test / parallelExecution := false,
+    name := "http-service-otelo",
+    version := Try(Source.fromFile((Compile / baseDirectory).value / "version").getLines.mkString).getOrElse(
+      "0.1.0-SNAPSHOT"
+    ),
+    Universal / packageName := name.value,
+    Compile / mainClass := Some("main.App"),
+    Compile / discoveredMainClasses := Seq(),
+    libraryDependencies ++= Basic.httpServiceDependencies,
+    libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
+  )
+
 // Smithy Basic demo
 lazy val basic_rest = project
   .in(file("00-systems/smithy-basic/02-http-service-basic"))

@@ -1,18 +1,16 @@
 package infrastructure
 package entities
 
+import akka.actor.typed.ActorRef
+import akka.actor.typed.scaladsl.ActorContext
+import akka.cluster.sharding.typed.scaladsl.ClusterSharding
 import akka.persistence.typed.scaladsl.Effect
 import akka.Done
-
-import akka.cluster.sharding.typed.scaladsl.ClusterSharding
-import akka.actor.typed.ActorRef
 
 import person.DataModel.*
 import person.Commands.*
 import person.Events.*
 import util.*
-
-import akka.actor.typed.scaladsl.ActorContext
 
 trait PersonCommandHandler:
     this: PersonEntity.State =>

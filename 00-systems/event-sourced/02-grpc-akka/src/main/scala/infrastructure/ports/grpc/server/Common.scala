@@ -2,13 +2,12 @@ package infrastructure
 package grpc
 
 import akka.grpc.GrpcServiceException
-
-import util.*
 import com.google.rpc.Code
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import util.*
 import ProtobufErrorsBuilder.*
 
 trait CommonGrpc:

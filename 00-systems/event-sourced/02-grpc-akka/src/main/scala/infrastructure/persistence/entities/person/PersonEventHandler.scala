@@ -3,9 +3,6 @@ package entities
 
 import org.slf4j.{ Logger, LoggerFactory }
 
-// import person.DataModel.*
-// import person.Commands.*
-// import util.*
 import person.Events.*
 
 def getIfNotNone[A](a: Option[A], b: Option[A]): Option[A] =

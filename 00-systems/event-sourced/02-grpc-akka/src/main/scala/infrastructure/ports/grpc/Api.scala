@@ -3,9 +3,6 @@ package grpc
 
 import services.Configs.GrpcConfig
 
-import api.eventSourced.grpc.*
-import services.person.PersonService
-
 import akka.http.scaladsl.Http.ServerBinding
 
 import akka.http.scaladsl.Http
@@ -33,8 +30,11 @@ import akka.http.scaladsl.model.http2.PeerClosedStreamException
 
 import scala.concurrent.ExecutionException
 import com.google.rpc.Code
+
+import api.eventSourced.grpc.*
+import services.person.PersonService
+
 import infrastructure.ProtobufErrorsBuilder.*
-// import GRPCServerImpl
 
 class GrpcApi(
            personService: PersonService)
@@ -74,11 +74,6 @@ class GrpcApi(
     }
 
     def init(): Future[ServerBinding] =
-        // val service: HttpRequest => Future[HttpResponse] = HomeServicePowerApiHandler
-        //   .withServerReflection(
-        //     GRPCServerImpl(personService)
-        //   )
-
         val service: HttpRequest => Future[HttpResponse] = akka.grpc.scaladsl.ServiceHandler.concatOrNotFound(
           HomeServicePowerApiHandler.partial(
             implementation = GRPCServerImpl(personService),

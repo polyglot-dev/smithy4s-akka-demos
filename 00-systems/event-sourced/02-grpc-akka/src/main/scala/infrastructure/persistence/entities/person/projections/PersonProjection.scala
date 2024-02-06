@@ -3,8 +3,6 @@ package entities
 package person
 package projections
 
-import util.person.EventsTags
-
 import scala.concurrent.ExecutionContext
 import akka.actor.typed.ActorSystem
 import akka.cluster.typed.ClusterSingleton
@@ -14,14 +12,16 @@ import akka.projection.ProjectionBehavior
 import akka.projection.eventsourced.EventEnvelope
 import akka.projection.eventsourced.scaladsl.EventSourcedProvider
 import akka.projection.scaladsl.SourceProvider
+import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
+import akka.projection.ProjectionId
+import akka.projection.r2dbc.scaladsl.R2dbcProjection
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
 
-import akka.projection.ProjectionId
-import akka.projection.r2dbc.scaladsl.R2dbcProjection
 import services.Configs.PersonEntityConfig
+import util.person.EventsTags
 
 import akka.persistence.typed.EventAdapter
 import _root_.journal.infrastructure.entities.person.events as DataModel
@@ -31,7 +31,6 @@ class PersonProjection()
                       (
                         using system: ActorSystem[Nothing],
                         config: PersonEntityConfig,
-                        // adapter: EventAdapter[DomainEvents.Event, DataModel.Event],
     ):
 
     val logger: Logger = LoggerFactory.getLogger(getClass)

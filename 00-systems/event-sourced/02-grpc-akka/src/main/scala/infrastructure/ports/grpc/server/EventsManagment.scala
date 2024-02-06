@@ -9,28 +9,27 @@ import akka.actor.typed.ActorSystem
 
 import akka.grpc.GrpcServiceException
 
-import util.*
-import entities.person.DataModel.*
-import services.person.PersonService
-
 import com.google.rpc.Code
 import scala.util.Failure
 import scala.util.Success
 
+import akka.Done
+
+import io.scalaland.chimney.dsl.*
+import io.scalaland.chimney.protobufs.*
+
+import java.util.UUID
+
 import api.event_sourced.managment.grpc.*
 import api.common.*
 
-import akka.Done
+import util.*
+import entities.person.DataModel.*
+import services.person.PersonService
 
 import ProtobufErrorsBuilder.*
 import transformers.CommonTransformers.given
 import transformers.PersonTransformers.given
-
-import io.scalaland.chimney.dsl.*
-import io.scalaland.chimney.protobufs.*
-// import io.scalaland.chimney.javacollections.*
-
-import java.util.UUID
 
 // ProjectionManagement
 // https://doc.akka.io/docs/akka-projection/current/management.html
