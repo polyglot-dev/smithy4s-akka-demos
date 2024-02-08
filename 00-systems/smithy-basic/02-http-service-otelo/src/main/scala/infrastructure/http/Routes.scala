@@ -37,7 +37,8 @@ object Middleware {
 
 
 class ServerRoutes(
-               logger: Option[IzLogger]
+               logger: org.slf4j.Logger
+              //  logger: Option[IzLogger]
                ):
     // private val mainRoutes: Resource[IO, HttpRoutes[IO]] = {
       

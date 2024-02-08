@@ -40,20 +40,21 @@ case class RequestInfo(
 userId: Option[String])
     
 class HttpServerImpl2(
-                       logger: Option[IzLogger],
+
+                      logger: org.slf4j.Logger,
+                      //  logger: Option[IzLogger],
                        requestInfo: IO[RequestInfo],
                        )
     extends HelloWorldService[Result]{
 
-        // https://0.0.0.0:9006/person/pepe?town=granada
         def hello(name: String, town: Option[String]): Result[Greeting]= 
-          logger.foreach(_.info(s"Hello $name from $town!"))
+        
+          logger.info(s"Hello $name from $town!    \"SSN\":\"34242343\"")
         
           EitherT(IO{Right(Greeting(s"Hello $name from $town! (Result)"))})
 
           val response = requestInfo.flatMap { (reqInfo: RequestInfo) =>
-            IO.println("REQUEST_INFO: " + reqInfo)
-              .as(Right(Greeting(s"Hello $name from $town! (IO)")))
+                IO.pure(Right(Greeting(s"Hello $name from $town! (IO)")))
           }
           
           EitherT(response)

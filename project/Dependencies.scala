@@ -253,10 +253,10 @@ object Dependencies {
       Libraries.distageCore,
       Libraries.distageConfig,
       Libraries.izumiLogstage,
-      Libraries.izumiLogstageAdapterSlf4j,
+      // Libraries.izumiLogstageAdapterSlf4j,
       Libraries.izumiLogstageCirce,
       Libraries.izumiDistageExtension,
-      Libraries.izumiLogstageSinkSlf4j,
+      // Libraries.izumiLogstageSinkSlf4j,
 
       Libraries.cats,
       Libraries.catsEffect,

@@ -17,6 +17,7 @@ import logstage.{ ConsoleSink, IzLogger, Trace }
 import izumi.logstage.api.routing.StaticLogRouter
 import infrastructure.resources.*
 
+import org.slf4j.{ Logger, LoggerFactory }
 
 object DI:
 
@@ -39,11 +40,18 @@ object DI:
                   StaticLogRouter.instance.setup(res.router)
                   res
 
+          make[org.slf4j.Logger].from:
+              (
+                res: IzLogger,
+              ) =>
+                  // new izumi.logstage.adapter.slf4j.LogstageSlf4jLogger("name loco", res.router)
+                  LoggerFactory.getLogger(getClass)
           
           make[HttpServerResource].from:
               (
                 config: HttpServerConfig,
-                logger: IzLogger,
+                // logger: IzLogger,
+                logger: org.slf4j.Logger,
                 ) =>
                   given HttpServerConfig = config
                   HttpServerResource(logger)

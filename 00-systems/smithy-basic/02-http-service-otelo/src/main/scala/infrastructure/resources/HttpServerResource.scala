@@ -65,13 +65,14 @@ class SSLResource[IO[_]: Async: Network]{
 }
 
 class HttpServerResource(
-                           logger: IzLogger,
+                          //  logger: IzLogger,
+                            logger: org.slf4j.Logger
                            )(using
                            config: HttpServerConfig):
 
     def resource(local: IOLocal[Option[RequestInfo]]): Resource[IO, Server] = 
       
-      ServerRoutes(Some(logger)).getAll(local)
+      ServerRoutes(logger).getAll(local)
       .flatMap:
           routes =>
                 for {

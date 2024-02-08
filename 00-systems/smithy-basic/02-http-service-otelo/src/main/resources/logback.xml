@@ -1,13 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        <encoder  class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+           <layout class="com.MaskingPatternLayout">
+	         <maskPattern>\"SSN\"\s*:\s*\"(.*?)\"</maskPattern>
+              <pattern><![CDATA[%date{HH:mm:ss.SSS} [%thread] %-5level %logger{15}#%line %X{req.requestURI} traceId: %X{trace_id} spanId: %X{span_id} %msg\n]]></pattern>
+           </layout>
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.v1_0.OpenTelemetryAppender">
+        <appender-ref ref="STDOUT" />
+    </appender>
+
+    <root>
+        <level value="DEBUG" />
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="queries"/>
 </configuration>

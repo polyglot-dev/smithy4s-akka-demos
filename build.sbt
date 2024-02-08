@@ -410,7 +410,22 @@ lazy val basic_rest_otelo = project
     Compile / discoveredMainClasses := Seq(),
     libraryDependencies ++= Basic.httpServiceDependencies,
     libraryDependencies ++= SmithyLibs.interfaceLibsDependencies,
+    libraryDependencies ++= Seq(
+      "ch.qos.logback"             % "logback-classic"            % "1.4.14",//LogbackVersion,
+
+      "io.opentelemetry"                 % "opentelemetry-api"           % opentelemetryVersion ,
+      "io.opentelemetry"                 % "opentelemetry-sdk"           % opentelemetryVersion ,
+
+      "io.opentelemetry.instrumentation" % "opentelemetry-logback-1.0"  % "1.9.2-alpha",
+      
+      // "io.opentelemetry"                 % "opentelemetry-exporter-otlp" % "1.31.0",
+      // "io.opentelemetry"                 % "opentelemetry-semconv"       % "1.30.1-alpha",
+      // "io.opentelemetry.instrumentation" % "opentelemetry-grpc-1.6"      % "1.31.0-alpha", // % "runtime"
+
+    ),
   )
+  
+lazy val opentelemetryVersion = "1.34.1"
 
 // Smithy Basic demo
 lazy val basic_rest = project

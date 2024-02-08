@@ -19,6 +19,6 @@ addDependencyTreePlugin
 
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.6")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.7")
 
 libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.11"
