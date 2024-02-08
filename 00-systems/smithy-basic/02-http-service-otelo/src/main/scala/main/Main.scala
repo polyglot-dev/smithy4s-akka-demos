@@ -32,19 +32,9 @@ object DI:
     val mainModule =
       new ModuleDef:
 
-          make[IzLogger].from:
-              () =>
-                  val textSink = ConsoleSink.text(colored = true)
-                  val sinks = List(textSink)
-                  val res = IzLogger(Trace, sinks)
-                  StaticLogRouter.instance.setup(res.router)
-                  res
-
           make[org.slf4j.Logger].from:
               (
-                res: IzLogger,
               ) =>
-                  // new izumi.logstage.adapter.slf4j.LogstageSlf4jLogger("name loco", res.router)
                   LoggerFactory.getLogger(getClass)
           
           make[HttpServerResource].from:
