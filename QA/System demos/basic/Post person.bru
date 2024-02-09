@@ -1,0 +1,31 @@
+meta {
+  name: Post person
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/person/town
+  body: json
+  auth: none
+}
+
+headers {
+  User-Agent: Chrome/103.0.0.0
+  Content-Type: application/json
+}
+
+auth:basic {
+  username: 
+  password: 
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  {
+    //"cosa": "eueu"
+  }
+}
